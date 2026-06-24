@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roi-Kham ร้อย-คำ — Word Scoring Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0f0e17;
+  --surf:     #1a1825;
+  --surf2:    #222133;
+  --border:   #2e2c42;
+  --gold:     #d4a84b;
+  --gold-dim: #8a6b2a;
+  --text:     #e8e4d9;
+  --dim:      #7a7690;
+  --green:    #4caf7d;
+  --red:      #e05c5c;
+}
+
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+header {
+  height: 50px;
+  background: linear-gradient(135deg, #1a1825, #0f0e17);
+  border-bottom: 1px solid var(--gold-dim);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+header h1 { font-family:'Cinzel',serif; font-size:1.1rem; color:var(--gold); letter-spacing:2px; }
+header .sub { font-size:.9rem; color:var(--dim); }
+header .ver { margin-left:auto; font-size:10px; color:var(--dim); background:var(--surf2); border:1px solid var(--border); border-radius:4px; padding:2px 8px; }
+
+/* ── 2-column layout ── */
+.main {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  height: calc(100vh - 50px);
+}
+
+.panel {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.panel:last-child { border-right: none; }
+.panel::-webkit-scrollbar { width:4px; }
+.panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+.section-head {
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.section-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dim);
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+/* ── Word input ── */
+.word-row { display:flex; gap:7px; }
+.word-input {
+  flex: 1;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 1.4rem;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color .15s;
+}
+.word-input:focus { border-color: var(--gold); }
+
+/* ── Buttons ── */
+.btn {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 13px;
+  padding: 8px 14px;
+  transition: border-color .15s, color .15s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--gold); color: var(--gold); }
+.btn-gold { background:var(--gold-dim); border-color:var(--gold); color:#fff; font-weight:600; }
+.btn-gold:hover { background:var(--gold); color:#000; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-red { border-color:#5a2a2a; color:var(--red); }
+.btn-red:hover { background:#2a0a0a; border-color:var(--red); }
+
+/* ── DB result ── */
+.db-result {
+  display: none;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 9px 12px;
+}
+.db-result.show { display: block; }
+.db-result.found { border-color: var(--green); }
+.db-result.miss  { border-color: var(--red); }
+
+.db-status { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:7px; }
+.db-result.found .db-status { color: var(--green); }
+.db-result.miss  .db-status { color: var(--red); }
+
+.db-grid { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; align-items:center; }
+.db-key { color:var(--dim); font-size:11px; }
+.db-val { color:var(--text); font-weight:500; font-size:11px; }
+
+/* ── Toggle pills ── */
+.pill-group { display:flex; flex-wrap:wrap; gap:5px; }
+.pill-input { display:none; }
+.pill {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 3px 9px;
+  color: var(--dim);
+  transition: border-color .1s, color .1s;
+  user-select: none;
+}
+.pill-input:checked + .pill { border-color: var(--gold); color: var(--gold); }
+.pill:hover { border-color: var(--dim); color: var(--text); }
+.prop-box { background:var(--surf); border:1px solid var(--border); border-radius:6px; padding:9px; }
+
+/* syllable count */
+.syl-row { display:flex; align-items:center; gap:10px; }
+.syl-in {
+  width: 56px;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 13px;
+  padding: 4px 8px;
+  text-align: center;
+  outline: none;
+}
+.syl-in:focus { border-color: var(--gold); }
+
+/* ── Right panel layout ── */
+.right-panel {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sub-panel {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sub-panel:last-child { border-right: none; }
+.sub-panel::-webkit-scrollbar { width:4px; }
+.sub-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* ── Bonus Card ── */
+.bonus-box {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.level-row { display:flex; gap:5px; }
+.lbtn {
+  flex: 1;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 4px;
+  text-align: center;
+  transition: all .1s;
+  line-height: 1.3;
+}
+.lbtn.on { background:var(--gold-dim); border-color:var(--gold); color:#fff; }
+.bonus-note { font-size:11px; color:var(--gold); }
+
+.cond-row { display:flex; flex-direction:column; gap:6px; }
+.cond-item { display:flex; align-items:center; gap:7px; }
+.cond-lbl { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; width:44px; }
+.cond-sel {
+  flex: 1;
+  min-width: 0;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 11px;
+  padding: 5px 7px;
+  outline: none;
+  cursor: pointer;
+}
+.cond-sel:focus { border-color: var(--gold); }
+
+/* ── Score result ── */
+.score-box {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.valid-badge {
+  text-align: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.vb-neutral { background:var(--surf2); color:var(--dim); border:1px solid var(--border); }
+.vb-valid   { background:#0a1e10; color:var(--green); border:1px solid #2a5a38; }
+.vb-invalid { background:#200808; color:var(--red); border:1px solid #5a2020; }
+
+.score-rows { display:flex; flex-direction:column; }
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.score-row:last-child { border-bottom: none; }
+.sc-label { font-size:13px; color:var(--dim); line-height:1.3; }
+.sc-sub { font-size:11px; color:var(--border); display:block; margin-top:2px; }
+.sc-val { font-size:1.5rem; font-weight:700; min-width:36px; text-align:right; }
+.val-zero { color:var(--dim); }
+.val-pos  { color:var(--gold); }
+
+.gold-divider { height:1px; background:var(--gold-dim); margin:12px 0; }
+
+.total-row { display:flex; justify-content:space-between; align-items:baseline; }
+.total-lbl { font-size:12px; color:var(--gold); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+.total-val { font-size:4rem; font-weight:700; color:var(--gold); line-height:1; }
+
+.bonus-met {
+  display: none;
+  margin-top: 10px;
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 4px;
+  background: #1a1400;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  line-height: 1.5;
+}
+.bonus-met.show { display: block; }
+
+.breakdown {
+  margin-top: 10px;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--dim);
+  font-family: monospace;
+  word-break: break-word;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ROI-KHAM</h1>
+  <span class="sub">ร้อย-คำ &nbsp;·&nbsp; Word Scoring Prototype</span>
+  <span class="ver">v0.3 · 61,487 words</span>
+</header>
+
+<div class="main">
+
+<!-- ══════════════════════════════════════
+     PANEL 1 — WORD + PROPERTIES
+══════════════════════════════════════ -->
+<div class="panel">
+  <div class="section-head">Word Input</div>
+
+  <div class="word-row">
+    <input class="word-input" id="wordInput" type="text" placeholder="พิมพ์คำไทย…" autocomplete="off" spellcheck="false">
+    <button class="btn btn-gold" onclick="lookupWord()">ค้น</button>
+  </div>
+
+  <div class="db-result" id="dbResult">
+    <div class="db-status" id="dbStatus"></div>
+    <div id="dbDetails"></div>
+  </div>
+
+  <!-- Syllable -->
+  <div>
+    <div class="section-label">Syllable Count</div>
+    <div class="syl-row">
+      <input class="syl-in" id="sylCount" type="number" min="1" max="10" value="1" oninput="recalc()">
+      <span style="font-size:11px;color:var(--dim)">× 1 pt each</span>
+    </div>
+  </div>
+
+  <!-- POS -->
+  <div>
+    <div class="section-label">Part of Speech</div>
+    <div class="prop-box">
+      <div class="pill-group">
+        <input class="pill-input" type="radio" name="pos" id="p_noun" value="NOUN" checked><label class="pill" for="p_noun">Noun</label>
+        <input class="pill-input" type="radio" name="pos" id="p_verb" value="VERB"><label class="pill" for="p_verb">Verb</label>
+        <input class="pill-input" type="radio" name="pos" id="p_adj"  value="ADJ"><label class="pill" for="p_adj">Adj</label>
+        <input class="pill-input" type="radio" name="pos" id="p_adv"  value="ADV"><label class="pill" for="p_adv">Adv</label>
+        <input class="pill-input" type="radio" name="pos" id="p_pron" value="PRON"><label class="pill" for="p_pron">Pron</label>
+        <input class="pill-input" type="radio" name="pos" id="p_intj" value="INTJ"><label class="pill" for="p_intj">Intj</label>
+        <input class="pill-input" type="radio" name="pos" id="p_prep" value="PREP"><label class="pill" for="p_prep">Prep</label>
+        <input class="pill-input" type="radio" name="pos" id="p_conj" value="CONJ"><label class="pill" for="p_conj">Conj</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live/Dead -->
+  <div>
+    <div class="section-label">Live / Dead</div>
+    <div class="prop-box">
+      <div class="pill-group">
+        <input class="pill-input" type="radio" name="ld" id="ld_live" value="live" checked><label class="pill" for="ld_live">คำเป็น Live</label>
+        <input class="pill-input" type="radio" name="ld" id="ld_dead" value="dead"><label class="pill" for="ld_dead">คำตาย Dead</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Initial class -->
+  <div>
+    <div class="section-label">Initial Class</div>
+    <div class="prop-box">
+      <div class="pill-group">
+        <input class="pill-input" type="radio" name="lc" id="lc_mid" value="mid" checked><label class="pill" for="lc_mid">กลาง/สูง</label>
+        <input class="pill-input" type="radio" name="lc" id="lc_low" value="low"><label class="pill" for="lc_low">ต่ำ</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final class -->
+  <div>
+    <div class="section-label">Final Class (แม่)</div>
+    <div class="prop-box">
+      <div class="pill-group">
+        <input class="pill-input" type="radio" name="fc" id="fc_none" value="none" checked><label class="pill" for="fc_none">ไม่มี</label>
+        <input class="pill-input" type="radio" name="fc" id="fc_gog"  value="กก"><label class="pill" for="fc_gog">กก</label>
+        <input class="pill-input" type="radio" name="fc" id="fc_god"  value="กด"><label class="pill" for="fc_god">กด</label>
+        <input class="pill-input" type="radio" name="fc" id="fc_gob"  value="กบ"><label class="pill" for="fc_gob">กบ</label>
+        <input class="pill-input" type="radio" name="fc" id="fc_gong" value="กง"><label class="pill" for="fc_gong">กง</label>
+        <input class="pill-input" type="radio" name="fc" id="fc_gon"  value="กน"><label class="pill" for="fc_gon">กน</label>
+        <input class="pill-input" type="radio" name="fc" id="fc_gom"  value="กม"><label class="pill" for="fc_gom">กม</label>
+        <input class="pill-input" type="radio" name="fc" id="fc_goey" value="เกย"><label class="pill" for="fc_goey">เกย</label>
+        <input class="pill-input" type="radio" name="fc" id="fc_goew" value="เกอว"><label class="pill" for="fc_goew">เกอว</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div>
+    <div class="section-label">Categories</div>
+    <div class="prop-box">
+      <div class="pill-group" id="catGroup">
+        <input class="pill-input" type="checkbox" id="c_animal"  value="animal"><label class="pill" for="c_animal">สัตว์</label>
+        <input class="pill-input" type="checkbox" id="c_plant"   value="plant"><label class="pill" for="c_plant">พืช</label>
+        <input class="pill-input" type="checkbox" id="c_food"    value="food"><label class="pill" for="c_food">อาหาร</label>
+        <input class="pill-input" type="checkbox" id="c_drink"   value="drink"><label class="pill" for="c_drink">เครื่องดื่ม</label>
+        <input class="pill-input" type="checkbox" id="c_fruit"   value="fruit"><label class="pill" for="c_fruit">ผลไม้</label>
+        <input class="pill-input" type="checkbox" id="c_veg"     value="vegetable"><label class="pill" for="c_veg">ผัก</label>
+        <input class="pill-input" type="checkbox" id="c_veh"     value="vehicle"><label class="pill" for="c_veh">พาหนะ</label>
+        <input class="pill-input" type="checkbox" id="c_house"   value="house_item"><label class="pill" for="c_house">ของในบ้าน</label>
+        <input class="pill-input" type="checkbox" id="c_body"    value="body_part"><label class="pill" for="c_body">อวัยวะ</label>
+        <input class="pill-input" type="checkbox" id="c_family"  value="family"><label class="pill" for="c_family">ครอบครัว</label>
+        <input class="pill-input" type="checkbox" id="c_color"   value="color"><label class="pill" for="c_color">สี</label>
+        <input class="pill-input" type="checkbox" id="c_shape"   value="shape"><label class="pill" for="c_shape">รูปร่าง</label>
+        <input class="pill-input" type="checkbox" id="c_nature"  value="nature"><label class="pill" for="c_nature">ธรรมชาติ</label>
+        <input class="pill-input" type="checkbox" id="c_weather" value="weather"><label class="pill" for="c_weather">สภาพอากาศ</label>
+        <input class="pill-input" type="checkbox" id="c_sport"   value="sport"><label class="pill" for="c_sport">กีฬา</label>
+        <input class="pill-input" type="checkbox" id="c_hobby"   value="hobby"><label class="pill" for="c_hobby">งานอดิเรก</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Special flags -->
+  <div>
+    <div class="section-label">Special Flags</div>
+    <div class="prop-box">
+      <div class="pill-group">
+        <input class="pill-input" type="checkbox" id="f_viss"    value="1"><label class="pill" for="f_viss">มี ะ วิสรรชนีย์</label>
+        <input class="pill-input" type="checkbox" id="f_bun"     value="1"><label class="pill" for="f_bun">บัน/บรร</label>
+        <input class="pill-input" type="checkbox" id="f_foreign" value="1"><label class="pill" for="f_foreign">คำต่างประเทศ</label>
+        <input class="pill-input" type="checkbox" id="f_royal"   value="1"><label class="pill" for="f_royal">ราชาศัพท์</label>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:auto;padding-top:10px;">
+    <button class="btn btn-red btn-sm" onclick="clearAll()">Clear</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     RIGHT SIDE — BONUS CARD + SCORE
+══════════════════════════════════════ -->
+<div class="right-panel">
+
+  <!-- Bonus Card -->
+  <div class="sub-panel">
+    <div class="section-head">Bonus Card</div>
+    <div class="bonus-box">
+      <div>
+        <div class="section-label" style="margin-bottom:6px">Level</div>
+        <div class="level-row">
+          <button class="lbtn on" data-lv="0" onclick="setLevel(0)">L0<br><small>+1</small></button>
+          <button class="lbtn"    data-lv="1" onclick="setLevel(1)">L1<br><small>+2</small></button>
+          <button class="lbtn"    data-lv="2" onclick="setLevel(2)">L2<br><small>+4</small></button>
+          <button class="lbtn"    data-lv="3" onclick="setLevel(3)">L3<br><small>+6</small></button>
+        </div>
+      </div>
+      <div class="cond-row">
+        <div class="cond-item">
+          <span class="cond-lbl">Cond A</span>
+          <select class="cond-sel" id="condA" onchange="recalc()"></select>
+        </div>
+        <div class="cond-item">
+          <span class="cond-lbl">Cond B</span>
+          <select class="cond-sel" id="condB" onchange="recalc()"></select>
+        </div>
+      </div>
+      <div class="bonus-note" id="bonusNote">Bonus: +1 if condition met</div>
+    </div>
+  </div>
+
+  <!-- Score Result -->
+  <div class="sub-panel">
+    <div class="section-head">Word Power</div>
+
+    <div class="score-box">
+      <div class="valid-badge vb-neutral" id="validBadge">— Enter a word —</div>
+
+      <div class="score-rows">
+        <div class="score-row">
+          <div class="sc-label">
+            Syllable Score
+            <span class="sc-sub" id="sylSub">1 syl × 1</span>
+          </div>
+          <div class="sc-val val-pos" id="vSyl">1</div>
+        </div>
+        <div class="score-row">
+          <div class="sc-label">
+            Consonant Value
+            <span class="sc-sub" id="conSub">—</span>
+          </div>
+          <div class="sc-val val-zero" id="vCon">0</div>
+        </div>
+        <div class="score-row">
+          <div class="sc-label">
+            Triple Bonus
+            <span class="sc-sub" id="tripleSub">No T5 match</span>
+          </div>
+          <div class="sc-val val-zero" id="vTriple">0</div>
+        </div>
+        <div class="score-row">
+          <div class="sc-label">
+            Bonus Card
+            <span class="sc-sub" id="bonusSub">—</span>
+          </div>
+          <div class="sc-val val-zero" id="vBonus">0</div>
+        </div>
+      </div>
+
+      <div class="gold-divider"></div>
+
+      <div class="total-row">
+        <div class="total-lbl">Word Power</div>
+        <div class="total-val" id="totalVal">—</div>
+      </div>
+
+      <div class="bonus-met" id="bonusMet"></div>
+
+      <div class="breakdown" id="breakdown">
+        Syllable(—) + Consonant(—) + Triple(—) + Bonus(—) = —
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="words.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════
+// WORD DATABASE — loaded from words.js (61,487 Thai words)
+// Format: {word: [syllables, pos, live_dead, final_class, lead_class, has_sara_a, has_ban_bor]}
+// ════════════════════════════════════════════════════════════
+const DB = window.WORD_DB || {};
+
+// ════════════════════════════════════════════════════════════
+// CONSONANT TIERS — auto-derived from word characters
+// ════════════════════════════════════════════════════════════
+const TIER_MAP = {
+  // T1 (+1)
+  'ก':1,'น':1,'ร':1,'อ':1,
+  // T2 (+2)
+  'ม':2,'ง':2,'ว':2,'ย':2,
+  // T3 (+3)
+  'ด':3,'ต':3,'ส':3,'ล':3,'ห':3,'ค':3,
+  // T4 (+4)
+  'ข':4,'ป':4,'บ':4,'จ':4,'พ':4,'ท':4,
+  // T5 (+5) — rare consonants (8 triple cards)
+  'ผ':5,'ถ':5,'ณ':5,
+  'ศ':5,'ธ':5,'ษ':5,
+  'ญ':5,'ภ':5,'ซ':5,
+  'ฉ':5,'ฐ':5,'ฟ':5,
+  'ฝ':5,'ฏ':5,'ฎ':5,
+  'ฒ':5,'ฮ':5,'ฑ':5,
+  'ฆ':5,'ฬ':5,'ฌ':5,
+  'ฃ':5,'ฅ':5,'ฤ':5,
+};
+
+// Each T5 card has 3 consonants — detect triple bonuses automatically
+const T5_CARDS = [
+  ['ผ','ถ','ณ'], ['ศ','ธ','ษ'], ['ญ','ภ','ซ'], ['ฉ','ฐ','ฟ'],
+  ['ฝ','ฏ','ฎ'], ['ฒ','ฮ','ฑ'], ['ฆ','ฬ','ฌ'], ['ฃ','ฅ','ฤ'],
+];
+
+function calcConsonantScore(word) {
+  const chars = [...word];
+  const consonants = chars.filter(c => TIER_MAP[c]);
+  const consonantVal = consonants.reduce((sum, c) => sum + TIER_MAP[c], 0);
+
+  // Check each T5 card: 2/3 = +5, 3/3 = +15 — stack if multiple cards match
+  const charSet = new Set(chars);
+  let tripleBonus = 0;
+  const tripleMatches = [];
+  for (const card of T5_CARDS) {
+    const hit = card.filter(c => charSet.has(c));
+    if (hit.length === 3) { tripleBonus += 15; tripleMatches.push(card.join('') + '(×3)'); }
+    else if (hit.length === 2) { tripleBonus += 5; tripleMatches.push(hit.join('') + '(×2)'); }
+  }
+
+  // Build readable breakdown string e.g. "ก(1)+ม(2)+ส(3)"
+  const breakdown = consonants.length
+    ? consonants.map(c => `${c}(${TIER_MAP[c]})`).join('+')
+    : '—';
+
+  return { consonantVal, tripleBonus, breakdown, tripleMatches };
+}
+
+// ════════════════════════════════════════════════════════════
+// BONUS CONDITIONS
+// ════════════════════════════════════════════════════════════
+const COND_GROUPS = [
+  { group: null, items: [{ value:"None", label:"— None —" }] },
+  { group: "L0 — Semantic (+1)", items: [
+    { value:"Animal",    label:"สัตว์ Animal" },
+    { value:"Plant",     label:"พืช Plant" },
+    { value:"Food",      label:"อาหาร Food" },
+    { value:"Drink",     label:"เครื่องดื่ม Drink" },
+    { value:"Vehicle",   label:"พาหนะ Vehicle" },
+    { value:"HouseItem", label:"ของในบ้าน House Item" },
+    { value:"BodyPart",  label:"อวัยวะ Body Part" },
+    { value:"FamilyMember",label:"ครอบครัว Family" },
+    { value:"Color",     label:"สี Color" },
+    { value:"Shape",     label:"รูปร่าง Shape" },
+    { value:"Nature",    label:"ธรรมชาติ Nature" },
+    { value:"Weather",   label:"สภาพอากาศ Weather" },
+    { value:"Sport",     label:"กีฬา Sport" },
+    { value:"Hobby",     label:"งานอดิเรก Hobby" },
+    { value:"Fruit",     label:"ผลไม้ Fruit" },
+    { value:"Vegetable", label:"ผัก Vegetable" },
+  ]},
+  { group: "L1 — Grammatical (+2)", items: [
+    { value:"Noun",              label:"คำนาม Noun" },
+    { value:"Verb",              label:"คำกริยา Verb" },
+    { value:"Pronoun",           label:"คำสรรพนาม Pronoun" },
+    { value:"Interjection",      label:"คำอุทาน Interjection" },
+    { value:"MidOrHighInitial",  label:"อักษรกลาง/สูง Mid/High Initial" },
+    { value:"LowInitial",        label:"อักษรต่ำ Low Initial" },
+    { value:"HasVissajaniya",    label:"มี ะ Vissajaniya" },
+    { value:"HasBunBrr",         label:"บัน/บรร" },
+  ]},
+  { group: "L2 — Advanced (+4)", items: [
+    { value:"LiveWord",          label:"คำเป็น Live Word" },
+    { value:"DeadWord",          label:"คำตาย Dead Word" },
+    { value:"RoyalVocab",        label:"ราชาศัพท์ Royal Vocab" },
+    { value:"ForeignLoan",       label:"คำต่างประเทศ Foreign Loan" },
+    { value:"FinalKok_Or_Kod",   label:"แม่กก หรือ กด" },
+    { value:"FinalKob_Or_Kong",  label:"แม่กบ หรือ กง" },
+    { value:"FinalKon_Or_Kom",   label:"แม่กน หรือ กม" },
+    { value:"FinalKoey_Or_Koew", label:"แม่เกย หรือ เกอว" },
+    { value:"Adjective",         label:"คำวิเศษณ์ Adjective" },
+    { value:"PrepOrConjunction", label:"คำบุพบท/เชื่อม Prep/Conj" },
+  ]},
+  { group: "L3 — Complex (+6) *honor", items: [
+    { value:"RepeatedWord",    label:"คำซ้ำ ๆ Repeated" },
+    { value:"SynonymPair",     label:"คำซ้อน Synonym Pair *" },
+    { value:"CompoundWord",    label:"คำประสม Compound *" },
+    { value:"SamatWord",       label:"คำสมาส Samat *" },
+    { value:"Transliteration", label:"คำทับศัพท์ Transliteration *" },
+    { value:"CoinedTerm",      label:"คำบัญญัติ Coined Term *" },
+  ]},
+];
+
+const HONOR = new Set(["SynonymPair","CompoundWord","SamatWord","Transliteration","CoinedTerm"]);
+const ALL_CONDS = COND_GROUPS.flatMap(g => g.items);
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let bonusLevel = 0;
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  // populate condition dropdowns with optgroups
+  ["condA","condB"].forEach(id => {
+    const sel = document.getElementById(id);
+    COND_GROUPS.forEach(g => {
+      if (!g.group) {
+        g.items.forEach(c => {
+          const o = document.createElement("option");
+          o.value = c.value; o.textContent = c.label;
+          sel.appendChild(o);
+        });
+      } else {
+        const og = document.createElement("optgroup");
+        og.label = g.group;
+        g.items.forEach(c => {
+          const o = document.createElement("option");
+          o.value = c.value; o.textContent = c.label;
+          og.appendChild(o);
+        });
+        sel.appendChild(og);
+      }
+    });
+  });
+
+  document.querySelectorAll('input[type=radio],input[type=checkbox]').forEach(el => {
+    el.addEventListener("change", recalc);
+  });
+
+  document.getElementById("wordInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") lookupWord();
+  });
+
+  recalc();
+});
+
+// ════════════════════════════════════════════════════════════
+// WORD LOOKUP
+// ════════════════════════════════════════════════════════════
+function lookupWord() {
+  const w = document.getElementById("wordInput").value.trim();
+  const box    = document.getElementById("dbResult");
+  const status = document.getElementById("dbStatus");
+  const detail = document.getElementById("dbDetails");
+
+  if (!w) { box.classList.remove("show","found","miss"); recalc(); return; }
+
+  // e = [syllables, pos, live_dead, final_class, lead_class, has_sara_a, has_ban_bor]
+  const e = DB[w];
+  box.className = "db-result show " + (e ? "found" : "miss");
+  status.textContent = e ? "✓ Found in database" : "✗ Not in database";
+
+  if (e) {
+    const [syl, pos, ld, fc, lc, viss, bun] = e;
+    document.getElementById("sylCount").value = syl;
+    setRadio("pos", pos);
+    setRadio("ld",  ld);
+    setRadio("lc",  lc);
+    setRadio("fc",  fc);
+    setChk("f_viss", viss);
+    setChk("f_bun",  bun);
+
+    detail.innerHTML = `
+      <div class="db-grid">
+        <span class="db-key">Syllables</span><span class="db-val">${syl}</span>
+        <span class="db-key">POS</span><span class="db-val">${pos}</span>
+        <span class="db-key">Live/Dead</span><span class="db-val">${ld}</span>
+        <span class="db-key">Initial</span><span class="db-val">${lc === "mid" ? "กลาง/สูง" : "ต่ำ"}</span>
+        <span class="db-key">Final</span><span class="db-val">${fc}</span>
+        <span class="db-key">มี ะ</span><span class="db-val">${viss ? "✓" : "—"}</span>
+        <span class="db-key">บัน/บรร</span><span class="db-val">${bun ? "✓" : "—"}</span>
+      </div>
+      <div style="margin-top:6px;font-size:10px;color:var(--dim)">⚠ Set categories / foreign / royal manually</div>`;
+  } else {
+    detail.innerHTML = `<span style="font-size:11px;color:var(--dim)">Not found — set properties manually ↓</span>`;
+  }
+  recalc();
+}
+
+function setRadio(name, val) {
+  const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+  if (el) el.checked = true;
+}
+function setCats(cats) {
+  document.querySelectorAll("#catGroup .pill-input").forEach(cb => {
+    cb.checked = cats.includes(cb.value);
+  });
+}
+function setChk(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.checked = !!val;
+}
+
+// ════════════════════════════════════════════════════════════
+// BONUS CARD
+// ════════════════════════════════════════════════════════════
+function setLevel(lv) {
+  bonusLevel = lv;
+  document.querySelectorAll(".lbtn").forEach(b => b.classList.toggle("on", +b.dataset.lv === lv));
+  document.getElementById("bonusNote").textContent = `Bonus: +${[1,2,4,6][lv]} if condition met`;
+  recalc();
+}
+
+// ════════════════════════════════════════════════════════════
+// CONDITION CHECK
+// ════════════════════════════════════════════════════════════
+function getProps() {
+  return {
+    pos:     document.querySelector('input[name="pos"]:checked')?.value || "NOUN",
+    ld:      document.querySelector('input[name="ld"]:checked')?.value  || "live",
+    lc:      document.querySelector('input[name="lc"]:checked')?.value  || "mid",
+    fc:      document.querySelector('input[name="fc"]:checked')?.value  || "none",
+    cats:    [...document.querySelectorAll("#catGroup .pill-input:checked")].map(e => e.value),
+    viss:    document.getElementById("f_viss").checked    ? 1 : 0,
+    bun:     document.getElementById("f_bun").checked     ? 1 : 0,
+    foreign: document.getElementById("f_foreign").checked ? 1 : 0,
+    royal:   document.getElementById("f_royal").checked   ? 1 : 0,
+  };
+}
+
+function checkCond(cond, p, word) {
+  if (!cond || cond === "None") return false;
+  const CAT = {
+    Animal:"animal", Plant:"plant", Food:"food", Drink:"drink",
+    Vehicle:"vehicle", HouseItem:"house_item", BodyPart:"body_part",
+    FamilyMember:"family", Color:"color", Shape:"shape", Nature:"nature",
+    Weather:"weather", Sport:"sport", Hobby:"hobby", Fruit:"fruit", Vegetable:"vegetable",
+  };
+  if (CAT[cond]) return p.cats.includes(CAT[cond]);
+  const FC = {
+    FinalKok_Or_Kod:   ["กก","กด"],
+    FinalKob_Or_Kong:  ["กบ","กง"],
+    FinalKon_Or_Kom:   ["กน","กม"],
+    FinalKoey_Or_Koew: ["เกย","เกอว"],
+  };
+  if (FC[cond]) return FC[cond].includes(p.fc);
+  switch(cond) {
+    case "Noun":              return p.pos === "NOUN";
+    case "Verb":              return p.pos === "VERB";
+    case "Pronoun":           return p.pos === "PRON";
+    case "Interjection":      return p.pos === "INTJ";
+    case "Adjective":         return p.pos === "ADJ";
+    case "PrepOrConjunction": return p.pos === "PREP" || p.pos === "CONJ";
+    case "MidOrHighInitial":  return p.lc === "mid";
+    case "LowInitial":        return p.lc === "low";
+    case "LiveWord":          return p.ld === "live";
+    case "DeadWord":          return p.ld === "dead";
+    case "RoyalVocab":        return p.royal === 1;
+    case "ForeignLoan":       return p.foreign === 1;
+    case "HasVissajaniya":    return p.viss === 1;
+    case "HasBunBrr":         return p.bun === 1;
+    case "RepeatedWord":      return word.includes("ๆ");
+    default:                  return false;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// CALCULATION
+// ════════════════════════════════════════════════════════════
+function recalc() {
+  const w = document.getElementById("wordInput").value.trim();
+  const isInDB  = !!DB[w];
+  const hasWord = w.length > 0;
+
+  const sylCount = Math.max(1, parseInt(document.getElementById("sylCount").value) || 1);
+  const sylScore = sylCount;
+
+  const { consonantVal, tripleBonus, breakdown: conBreakdown, tripleMatches } =
+    hasWord ? calcConsonantScore(w) : { consonantVal:0, tripleBonus:0, breakdown:'—', tripleMatches:[] };
+
+  const condA = document.getElementById("condA").value;
+  const condB = document.getElementById("condB").value;
+  const p = getProps();
+  const metA = checkCond(condA, p, w);
+  const metB = checkCond(condB, p, w);
+  const metCond = metA ? condA : (metB ? condB : null);
+  const bonusVal = metCond ? [1,2,4,6][bonusLevel] : 0;
+
+  const total = sylScore + consonantVal + tripleBonus + bonusVal;
+
+  // validity badge
+  const badge = document.getElementById("validBadge");
+  if (!hasWord) {
+    badge.className = "valid-badge vb-neutral";
+    badge.textContent = "— Enter a word —";
+  } else if (!isInDB) {
+    badge.className = "valid-badge vb-invalid";
+    badge.textContent = "✗ Not in dictionary";
+  } else {
+    badge.className = "valid-badge vb-valid";
+    badge.textContent = "✓ Valid word";
+  }
+
+  // syllable row
+  setVal("vSyl", sylScore, sylScore > 0);
+  document.getElementById("sylSub").textContent = `${sylCount} syl × 1`;
+
+  // consonant row
+  setVal("vCon", consonantVal, consonantVal > 0);
+  document.getElementById("conSub").textContent = conBreakdown;
+
+  // triple bonus row
+  setVal("vTriple", tripleBonus, tripleBonus > 0);
+  document.getElementById("tripleSub").textContent =
+    tripleMatches.length ? tripleMatches.join(', ') : "No T5 match";
+
+  // bonus row
+  setVal("vBonus", bonusVal, bonusVal > 0);
+  document.getElementById("bonusSub").textContent =
+    condA === "None" && condB === "None" ? "No condition set" :
+    metCond ? `Met: ${metCond}` : "Condition not met";
+
+  // total
+  document.getElementById("totalVal").textContent = hasWord ? total : "—";
+
+  // bonus banner
+  const bm = document.getElementById("bonusMet");
+  if (metCond && bonusVal > 0) {
+    bm.classList.add("show");
+    const label = ALL_CONDS.find(c => c.value === metCond)?.label || metCond;
+    const note  = HONOR.has(metCond) ? " (honor system — check manually)" : "";
+    bm.textContent = `✦ Bonus: ${label}  +${bonusVal}${note}`;
+  } else {
+    bm.classList.remove("show");
+  }
+
+  document.getElementById("breakdown").textContent =
+    `Syllable(${sylScore}) + Consonant(${consonantVal}) + Triple(${tripleBonus}) + Bonus(${bonusVal}) = ${hasWord ? total : "—"}`;
+}
+
+function setVal(id, val, positive) {
+  const el = document.getElementById(id);
+  el.textContent = val;
+  el.className = "sc-val " + (positive ? "val-pos" : "val-zero");
+}
+
+// ════════════════════════════════════════════════════════════
+// CLEAR
+// ════════════════════════════════════════════════════════════
+function clearAll() {
+  document.getElementById("wordInput").value = "";
+  document.getElementById("dbResult").className = "db-result";
+  document.getElementById("sylCount").value = 1;
+  setRadio("pos","NOUN"); setRadio("ld","live"); setRadio("lc","mid"); setRadio("fc","none");
+  setCats([]);
+  ["f_viss","f_bun","f_foreign","f_royal"].forEach(id => { document.getElementById(id).checked = false; });
+  bonusLevel = 0;
+  document.querySelectorAll(".lbtn").forEach(b => b.classList.toggle("on", b.dataset.lv === "0"));
+  document.getElementById("condA").value = "None";
+  document.getElementById("condB").value = "None";
+  document.getElementById("bonusNote").textContent = "Bonus: +1 if condition met";
+  recalc();
+}
+</script>
+</body>
+</html>
