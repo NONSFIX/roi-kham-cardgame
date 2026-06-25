@@ -34,7 +34,8 @@ function mapFC(fc) {
 
 const db = new DatabaseSync(DB_PATH);
 const rows = db.prepare(
-  "SELECT word, syllables, pos, leading_class, final_class, live_dead, has_sara_a, has_ban_bor " +
+  "SELECT word, syllables, pos, leading_class, final_class, live_dead, has_sara_a, has_ban_bor, " +
+  "COALESCE(categories, '') AS categories " +
   "FROM words WHERE word NOT LIKE '% %' AND pos <> 'PUNC' AND word <> ''"
 ).all();
 db.close();
@@ -51,11 +52,12 @@ for (const r of rows) {
     mapLC(r.leading_class),
     r.has_sara_a ? 1 : 0,
     r.has_ban_bor ? 1 : 0,
+    r.categories || "",   // index [7] — comma-separated semantic categories
   ];
 }
 
 const header = `// Roi-Kham Word Database — generated from Handoff/words.db\n` +
-  `// ${rows.length} words · [syllables, pos, live_dead, final_class, lead_class, has_sara_a, has_ban_bor]\n` +
+  `// ${rows.length} words · [syllables, pos, live_dead, final_class, lead_class, has_sara_a, has_ban_bor, categories]\n` +
   `window.WORD_DB = `;
 
 fs.writeFileSync(OUT_PATH, header + JSON.stringify(out) + ";\n", "utf8");

@@ -43,7 +43,7 @@ header {
 }
 header h1 { font-family:'Cinzel',serif; font-size:1.1rem; color:var(--gold); letter-spacing:2px; }
 header .sub { font-size:.9rem; color:var(--dim); }
-header .ver { margin-left:auto; font-size:10px; color:var(--dim); background:var(--surf2); border:1px solid var(--border); border-radius:4px; padding:2px 8px; }
+header .ver { font-size:10px; color:var(--dim); background:var(--surf2); border:1px solid var(--border); border-radius:4px; padding:2px 8px; }
 
 /* ── 2-column layout ── */
 .main {
@@ -309,6 +309,198 @@ header .ver { margin-left:auto; font-size:10px; color:var(--dim); background:var
   word-break: break-word;
   line-height: 1.5;
 }
+
+/* ── Tab Navigation ── */
+.tab-nav { display:flex; gap:6px; margin-left:auto; }
+.tab-btn {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--dim);
+  cursor: pointer;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  padding: 5px 14px;
+  transition: border-color .15s, color .15s;
+}
+.tab-btn:hover { border-color: var(--gold-dim); color: var(--text); }
+.tab-btn.active { border-color: var(--gold); color: var(--gold); background: #1a1600; }
+
+/* ── Setup Tab Layout ── */
+#tab-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px;
+  height: calc(100vh - 50px);
+  overflow-y: auto;
+}
+#tab-setup::-webkit-scrollbar { width:4px; }
+#tab-setup::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+.setup-word-section { display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap; }
+.setup-word-section .word-input { font-size:1.6rem; }
+
+.s-db-result {
+  width: 100%;
+  display: none;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.s-db-result.show { display: block; }
+.s-db-result.found { border-color: var(--green); color: var(--green); }
+.s-db-result.miss  { border-color: var(--red);   color: var(--red); }
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  flex: 1;
+}
+@media (max-width: 700px) { .setup-grid { grid-template-columns: 1fr; } }
+
+.setup-card {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Setup bonus level buttons */
+.slbtn {
+  flex: 1;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 4px;
+  text-align: center;
+  transition: all .1s;
+  line-height: 1.3;
+}
+.slbtn.on { background:var(--gold-dim); border-color:var(--gold); color:#fff; }
+
+.calc-btn {
+  width: 100%;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold);
+  border-radius: 7px;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 13px;
+  transition: background .15s, color .15s;
+}
+.calc-btn:hover { background: var(--gold); color: #000; }
+
+/* ── Database Tab ── */
+#tab-db {
+  display: none;
+  flex-direction: column;
+  height: calc(100vh - 50px);
+  padding: 16px 20px;
+  gap: 10px;
+  overflow: hidden;
+}
+.db-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.db-search {
+  flex: 1;
+  min-width: 160px;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 1.1rem;
+  padding: 7px 12px;
+  outline: none;
+}
+.db-search:focus { border-color: var(--gold); }
+.db-select {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 12px;
+  padding: 7px 10px;
+  outline: none;
+  cursor: pointer;
+}
+.db-select:focus { border-color: var(--gold); }
+.db-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.db-table-wrap::-webkit-scrollbar { width: 4px; }
+.db-table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.db-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.db-table thead th {
+  background: var(--surf2);
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 9px 12px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid var(--border);
+}
+.db-table tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+.db-table tbody tr:hover { background: var(--surf2); }
+.db-table tbody td { padding: 7px 12px; color: var(--text); vertical-align: middle; }
+.db-word { font-size: 1.1rem; font-weight: 600; color: var(--gold); }
+.db-cats { font-size: 11px; color: var(--dim); }
+.db-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 6px 0;
+}
+.db-pagination button {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 12px;
+  padding: 5px 14px;
+}
+.db-pagination button:hover { border-color: var(--gold); color: var(--gold); }
+.db-pagination button:disabled { opacity: .3; cursor: default; }
+#dbPageInfo { font-size: 12px; color: var(--dim); min-width: 120px; text-align: center; }
+#dbStatusBar { font-size: 11px; color: var(--dim); }
 </style>
 </head>
 <body>
@@ -317,8 +509,264 @@ header .ver { margin-left:auto; font-size:10px; color:var(--dim); background:var
   <h1>ROI-KHAM</h1>
   <span class="sub">ร้อย-คำ &nbsp;·&nbsp; Word Scoring Prototype</span>
   <span class="ver">v0.3 · 61,487 words</span>
+  <nav class="tab-nav">
+    <button class="tab-btn active" id="tabBtnSetup"   onclick="switchTab('setup')">Card Setup</button>
+    <button class="tab-btn"        id="tabBtnManual"  onclick="switchTab('manual')">Manual Category</button>
+    <button class="tab-btn"        id="tabBtnScore"   onclick="switchTab('score')">Score Calculator</button>
+    <button class="tab-btn"        id="tabBtnDb"      onclick="switchTab('db')">Database</button>
+  </nav>
 </header>
 
+<!-- ══════════════════════════════════════
+     SETUP TAB — WORD + CATEGORIES + BONUS
+══════════════════════════════════════ -->
+<div id="tab-setup">
+
+  <!-- Word search row -->
+  <div class="setup-word-section">
+    <input class="word-input" id="sWord" type="text" placeholder="พิมพ์คำไทย…" autocomplete="off" spellcheck="false"
+           style="flex:1" onkeydown="if(event.key==='Enter')setupLookup()">
+    <button class="btn btn-gold" onclick="setupLookup()">ค้น</button>
+    <div class="s-db-result" id="sDbResult"></div>
+  </div>
+
+  <!-- Two-column grid: Categories | Bonus Card -->
+  <div class="setup-grid">
+
+    <!-- Categories -->
+    <div class="setup-card">
+      <div class="section-head">Categories</div>
+      <div>
+        <div class="section-label">Semantic</div>
+        <div class="pill-group" id="sCatGroup">
+          <input class="pill-input" type="checkbox" id="sc_animal"  value="animal"><label class="pill" for="sc_animal">สัตว์</label>
+          <input class="pill-input" type="checkbox" id="sc_plant"   value="plant"><label class="pill" for="sc_plant">พืช</label>
+          <input class="pill-input" type="checkbox" id="sc_food"    value="food"><label class="pill" for="sc_food">อาหาร</label>
+          <input class="pill-input" type="checkbox" id="sc_drink"   value="drink"><label class="pill" for="sc_drink">เครื่องดื่ม</label>
+          <input class="pill-input" type="checkbox" id="sc_fruit"   value="fruit"><label class="pill" for="sc_fruit">ผลไม้</label>
+          <input class="pill-input" type="checkbox" id="sc_veg"     value="vegetable"><label class="pill" for="sc_veg">ผัก</label>
+          <input class="pill-input" type="checkbox" id="sc_veh"     value="vehicle"><label class="pill" for="sc_veh">พาหนะ</label>
+          <input class="pill-input" type="checkbox" id="sc_house"   value="house_item"><label class="pill" for="sc_house">ของในบ้าน</label>
+          <input class="pill-input" type="checkbox" id="sc_body"    value="body_part"><label class="pill" for="sc_body">อวัยวะ</label>
+          <input class="pill-input" type="checkbox" id="sc_family"  value="family"><label class="pill" for="sc_family">ครอบครัว</label>
+          <input class="pill-input" type="checkbox" id="sc_color"   value="color"><label class="pill" for="sc_color">สี</label>
+          <input class="pill-input" type="checkbox" id="sc_shape"   value="shape"><label class="pill" for="sc_shape">รูปร่าง</label>
+          <input class="pill-input" type="checkbox" id="sc_nature"  value="nature"><label class="pill" for="sc_nature">ธรรมชาติ</label>
+          <input class="pill-input" type="checkbox" id="sc_weather" value="weather"><label class="pill" for="sc_weather">สภาพอากาศ</label>
+          <input class="pill-input" type="checkbox" id="sc_sport"   value="sport"><label class="pill" for="sc_sport">กีฬา</label>
+          <input class="pill-input" type="checkbox" id="sc_hobby"   value="hobby"><label class="pill" for="sc_hobby">งานอดิเรก</label>
+        </div>
+      </div>
+      <div>
+        <div class="section-label">Special Flags</div>
+        <div class="pill-group">
+          <input class="pill-input" type="checkbox" id="s_viss"    value="1"><label class="pill" for="s_viss">มี ะ วิสรรชนีย์</label>
+          <input class="pill-input" type="checkbox" id="s_bun"     value="1"><label class="pill" for="s_bun">บัน/บรร</label>
+          <input class="pill-input" type="checkbox" id="s_foreign" value="1"><label class="pill" for="s_foreign">คำต่างประเทศ</label>
+          <input class="pill-input" type="checkbox" id="s_royal"   value="1"><label class="pill" for="s_royal">ราชาศัพท์</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bonus Card -->
+    <div class="setup-card">
+      <div class="section-head">Bonus Card</div>
+      <div>
+        <div class="section-label" style="margin-bottom:6px">Level</div>
+        <div class="level-row">
+          <button class="slbtn on" data-slv="0" onclick="setSetupLevel(0)">L0<br><small>+1</small></button>
+          <button class="slbtn"    data-slv="1" onclick="setSetupLevel(1)">L1<br><small>+2</small></button>
+          <button class="slbtn"    data-slv="2" onclick="setSetupLevel(2)">L2<br><small>+4</small></button>
+          <button class="slbtn"    data-slv="3" onclick="setSetupLevel(3)">L3<br><small>+6</small></button>
+        </div>
+      </div>
+      <div class="cond-row">
+        <div class="cond-item">
+          <span class="cond-lbl">Cond A</span>
+          <select class="cond-sel" id="sCondA"></select>
+        </div>
+        <div class="cond-item">
+          <span class="cond-lbl">Cond B</span>
+          <select class="cond-sel" id="sCondB"></select>
+        </div>
+      </div>
+      <div class="bonus-note" id="sBonusNote">Bonus: +1 if condition met</div>
+    </div>
+
+  </div><!-- /setup-grid -->
+
+  <button class="calc-btn" onclick="goToScore()">Calculate Score →</button>
+
+</div><!-- /tab-setup -->
+
+<!-- ══════════════════════════════════════
+     MANUAL CATEGORY TAB
+══════════════════════════════════════ -->
+<div id="tab-manual" style="display:none; height:calc(100vh - 50px); overflow-y:auto; padding:18px 20px; box-sizing:border-box;">
+
+  <div class="section-head" style="margin-bottom:16px">Manual Category Input</div>
+
+  <!-- Current word display -->
+  <div id="manualWordBadge" style="margin-bottom:14px; font-size:13px; color:var(--dim)">
+    ← Enter a word on the <strong style="color:var(--gold)">Card Setup</strong> tab first
+  </div>
+
+  <!-- Two-column layout: text area | category checkboxes -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;">
+
+    <!-- Left: paste area -->
+    <div class="setup-card">
+      <div class="section-head">Paste Definition Text</div>
+      <textarea id="manualText"
+        placeholder="วางข้อความนิยามจากพจนานุกรมที่นี่…&#10;&#10;ตัวอย่าง:&#10;สุนัข น. สัตว์เลี้ยงลูกด้วยนม ..."
+        style="width:100%; min-height:220px; background:var(--surf2); border:1px solid var(--border);
+               border-radius:6px; color:var(--text); font-family:'Noto Sans Thai',sans-serif;
+               font-size:13px; padding:10px 12px; outline:none; resize:vertical; line-height:1.6;"
+        oninput="document.getElementById('manualText').style.borderColor='var(--border)'"
+      ></textarea>
+      <button class="btn btn-gold" onclick="analyzeText()" style="width:100%; margin-top:4px;">
+        วิเคราะห์ →
+      </button>
+      <div id="manualMatchList" style="margin-top:10px; font-size:11px; color:var(--gold); line-height:1.8;"></div>
+    </div>
+
+    <!-- Right: suggested category checkboxes -->
+    <div class="setup-card">
+      <div class="section-head">Suggested Categories</div>
+      <div style="font-size:10px; color:var(--dim); margin-bottom:8px; letter-spacing:.5px;">
+        คลิกเลือก/ยกเลิก แล้วกด Apply →
+      </div>
+
+      <div class="section-label">Semantic</div>
+      <div class="pill-group" id="manualCatGroup" style="margin-bottom:12px;">
+        <input class="pill-input" type="checkbox" id="mc_animal"  value="animal"><label class="pill" for="mc_animal">สัตว์</label>
+        <input class="pill-input" type="checkbox" id="mc_plant"   value="plant"><label class="pill" for="mc_plant">พืช</label>
+        <input class="pill-input" type="checkbox" id="mc_food"    value="food"><label class="pill" for="mc_food">อาหาร</label>
+        <input class="pill-input" type="checkbox" id="mc_drink"   value="drink"><label class="pill" for="mc_drink">เครื่องดื่ม</label>
+        <input class="pill-input" type="checkbox" id="mc_fruit"   value="fruit"><label class="pill" for="mc_fruit">ผลไม้</label>
+        <input class="pill-input" type="checkbox" id="mc_veg"     value="vegetable"><label class="pill" for="mc_veg">ผัก</label>
+        <input class="pill-input" type="checkbox" id="mc_veh"     value="vehicle"><label class="pill" for="mc_veh">พาหนะ</label>
+        <input class="pill-input" type="checkbox" id="mc_house"   value="house_item"><label class="pill" for="mc_house">ของในบ้าน</label>
+        <input class="pill-input" type="checkbox" id="mc_body"    value="body_part"><label class="pill" for="mc_body">อวัยวะ</label>
+        <input class="pill-input" type="checkbox" id="mc_family"  value="family"><label class="pill" for="mc_family">ครอบครัว</label>
+        <input class="pill-input" type="checkbox" id="mc_color"   value="color"><label class="pill" for="mc_color">สี</label>
+        <input class="pill-input" type="checkbox" id="mc_shape"   value="shape"><label class="pill" for="mc_shape">รูปร่าง</label>
+        <input class="pill-input" type="checkbox" id="mc_nature"  value="nature"><label class="pill" for="mc_nature">ธรรมชาติ</label>
+        <input class="pill-input" type="checkbox" id="mc_weather" value="weather"><label class="pill" for="mc_weather">สภาพอากาศ</label>
+        <input class="pill-input" type="checkbox" id="mc_sport"   value="sport"><label class="pill" for="mc_sport">กีฬา</label>
+        <input class="pill-input" type="checkbox" id="mc_hobby"   value="hobby"><label class="pill" for="mc_hobby">งานอดิเรก</label>
+      </div>
+
+      <div class="section-label">Special Flags</div>
+      <div class="pill-group" style="margin-bottom:14px;">
+        <input class="pill-input" type="checkbox" id="mc_viss"    value="viss"><label class="pill" for="mc_viss">มี ะ</label>
+        <input class="pill-input" type="checkbox" id="mc_bun"     value="bun"><label class="pill" for="mc_bun">บัน/บรร</label>
+        <input class="pill-input" type="checkbox" id="mc_foreign" value="foreign"><label class="pill" for="mc_foreign">คำต่างประเทศ</label>
+        <input class="pill-input" type="checkbox" id="mc_royal"   value="royal"><label class="pill" for="mc_royal">ราชาศัพท์</label>
+      </div>
+
+      <button class="calc-btn" onclick="applyManualCats()">
+        Apply to Card Setup →
+      </button>
+    </div>
+
+  </div><!-- /grid -->
+</div><!-- /tab-manual -->
+
+<!-- ══════════════════════════════════════
+     DATABASE TAB
+══════════════════════════════════════ -->
+<div id="tab-db">
+
+  <!-- Header row -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+    <div class="section-head">Word Database</div>
+    <span id="dbTotalBadge" style="font-size:11px; color:var(--dim)">loading…</span>
+  </div>
+
+  <!-- Search + filter controls -->
+  <div class="db-controls" style="flex-shrink:0;">
+    <input class="db-search" id="dbSearch" type="text"
+           placeholder="ค้นหาคำ…" autocomplete="off" spellcheck="false" oninput="filterDB()">
+
+    <select class="db-select" id="dbPosFilter" onchange="filterDB()">
+      <option value="">POS: ทั้งหมด</option>
+      <option value="NOUN">Noun</option>
+      <option value="VERB">Verb</option>
+      <option value="ADJ">Adj</option>
+      <option value="ADV">Adv</option>
+      <option value="PRON">Pron</option>
+      <option value="INTJ">Intj</option>
+      <option value="PREP">Prep</option>
+      <option value="CONJ">Conj</option>
+    </select>
+
+    <select class="db-select" id="dbLdFilter" onchange="filterDB()">
+      <option value="">Live/Dead: ทั้งหมด</option>
+      <option value="live">คำเป็น Live</option>
+      <option value="dead">คำตาย Dead</option>
+    </select>
+
+    <select class="db-select" id="dbCatFilter" onchange="filterDB()">
+      <option value="">Category: ทั้งหมด</option>
+      <option value="animal">สัตว์ Animal</option>
+      <option value="plant">พืช Plant</option>
+      <option value="food">อาหาร Food</option>
+      <option value="drink">เครื่องดื่ม Drink</option>
+      <option value="fruit">ผลไม้ Fruit</option>
+      <option value="vegetable">ผัก Vegetable</option>
+      <option value="vehicle">พาหนะ Vehicle</option>
+      <option value="house_item">ของในบ้าน</option>
+      <option value="body_part">อวัยวะ Body Part</option>
+      <option value="family">ครอบครัว Family</option>
+      <option value="color">สี Color</option>
+      <option value="shape">รูปร่าง Shape</option>
+      <option value="nature">ธรรมชาติ Nature</option>
+      <option value="weather">สภาพอากาศ Weather</option>
+      <option value="sport">กีฬา Sport</option>
+      <option value="hobby">งานอดิเรก Hobby</option>
+    </select>
+
+    <button class="btn btn-sm btn-red" onclick="clearDBFilters()">Clear</button>
+  </div>
+
+  <!-- Status bar -->
+  <div id="dbStatusBar" style="flex-shrink:0;"></div>
+
+  <!-- Table -->
+  <div class="db-table-wrap">
+    <table class="db-table">
+      <thead>
+        <tr>
+          <th>คำ Word</th>
+          <th>พยางค์</th>
+          <th>POS</th>
+          <th>Live/Dead</th>
+          <th>Final</th>
+          <th>Initial</th>
+          <th>Categories</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="dbTableBody">
+        <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--dim)">เปิด Database tab เพื่อโหลด…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="db-pagination" style="flex-shrink:0;">
+    <button id="dbPrevBtn" onclick="dbGoPage(-1)" disabled>← ก่อนหน้า</button>
+    <span id="dbPageInfo">หน้า 1 / 1</span>
+    <button id="dbNextBtn" onclick="dbGoPage(1)">ถัดไป →</button>
+  </div>
+
+</div><!-- /tab-db -->
+
+<!-- ══════════════════════════════════════
+     SCORE TAB — EXISTING LAYOUT
+══════════════════════════════════════ -->
+<div id="tab-score" style="display:none; height:calc(100vh - 50px);">
 <div class="main">
 
 <!-- ══════════════════════════════════════
@@ -533,6 +981,7 @@ header .ver { margin-left:auto; font-size:10px; color:var(--dim); background:var
 
 </div>
 </div>
+</div><!-- /tab-score -->
 
 <script src="words.js"></script>
 <script>
@@ -661,8 +1110,8 @@ let bonusLevel = 0;
 // INIT
 // ════════════════════════════════════════════════════════════
 document.addEventListener("DOMContentLoaded", () => {
-  // populate condition dropdowns with optgroups
-  ["condA","condB"].forEach(id => {
+  // populate condition dropdowns with optgroups (score tab + setup tab)
+  ["condA","condB","sCondA","sCondB"].forEach(id => {
     const sel = document.getElementById(id);
     COND_GROUPS.forEach(g => {
       if (!g.group) {
@@ -706,13 +1155,13 @@ function lookupWord() {
 
   if (!w) { box.classList.remove("show","found","miss"); recalc(); return; }
 
-  // e = [syllables, pos, live_dead, final_class, lead_class, has_sara_a, has_ban_bor]
+  // e = [syllables, pos, live_dead, final_class, lead_class, has_sara_a, has_ban_bor, categories]
   const e = DB[w];
   box.className = "db-result show " + (e ? "found" : "miss");
   status.textContent = e ? "✓ Found in database" : "✗ Not in database";
 
   if (e) {
-    const [syl, pos, ld, fc, lc, viss, bun] = e;
+    const [syl, pos, ld, fc, lc, viss, bun, cats] = e;
     document.getElementById("sylCount").value = syl;
     setRadio("pos", pos);
     setRadio("ld",  ld);
@@ -720,6 +1169,12 @@ function lookupWord() {
     setRadio("fc",  fc);
     setChk("f_viss", viss);
     setChk("f_bun",  bun);
+    setCats(cats ? cats.split(',').filter(Boolean) : []);
+
+    const catsDisplay = cats ? cats.split(',').filter(Boolean).join(', ') : '—';
+    const catsNote = cats
+      ? `<div style="margin-top:6px;font-size:10px;color:var(--green)">✓ หมวด: ${catsDisplay}</div>`
+      : `<div style="margin-top:6px;font-size:10px;color:var(--dim)">⚠ ยังไม่มีหมวด — ใช้ Manual Category หรือ Card Setup เพื่อตั้งค่า</div>`;
 
     detail.innerHTML = `
       <div class="db-grid">
@@ -731,7 +1186,7 @@ function lookupWord() {
         <span class="db-key">มี ะ</span><span class="db-val">${viss ? "✓" : "—"}</span>
         <span class="db-key">บัน/บรร</span><span class="db-val">${bun ? "✓" : "—"}</span>
       </div>
-      <div style="margin-top:6px;font-size:10px;color:var(--dim)">⚠ Set categories / foreign / royal manually</div>`;
+      ${catsNote}`;
   } else {
     detail.innerHTML = `<span style="font-size:11px;color:var(--dim)">Not found — set properties manually ↓</span>`;
   }
@@ -893,6 +1348,283 @@ function setVal(id, val, positive) {
   const el = document.getElementById(id);
   el.textContent = val;
   el.className = "sc-val " + (positive ? "val-pos" : "val-zero");
+}
+
+// ════════════════════════════════════════════════════════════
+// TAB NAVIGATION
+// ════════════════════════════════════════════════════════════
+let setupBonusLevel = 0;
+
+function switchTab(name) {
+  document.getElementById('tab-setup').style.display  = name === 'setup'  ? 'flex'  : 'none';
+  document.getElementById('tab-manual').style.display = name === 'manual' ? 'block' : 'none';
+  document.getElementById('tab-score').style.display  = name === 'score'  ? 'block' : 'none';
+  document.getElementById('tab-db').style.display     = name === 'db'     ? 'flex'  : 'none';
+  document.getElementById('tabBtnSetup').classList.toggle('active',  name === 'setup');
+  document.getElementById('tabBtnManual').classList.toggle('active', name === 'manual');
+  document.getElementById('tabBtnScore').classList.toggle('active',  name === 'score');
+  document.getElementById('tabBtnDb').classList.toggle('active',     name === 'db');
+
+  if (name === 'db') initDBView();
+
+  // Update Manual tab word badge when switching to it
+  if (name === 'manual') {
+    const w = document.getElementById('sWord').value.trim();
+    const badge = document.getElementById('manualWordBadge');
+    badge.innerHTML = w
+      ? `คำปัจจุบัน: <strong style="color:var(--gold); font-size:1.2rem">${w}</strong>`
+      : '← Enter a word on the <strong style="color:var(--gold)">Card Setup</strong> tab first';
+  }
+}
+
+// ── Manual Category: keyword → game category map (Thai + English labels)
+const MANUAL_KEYWORD_MAP = {
+  animal:     ['สัตว์','นก','ปลา','แมลง','สัตว์เลี้ยง','สัตว์ป่า','ปักษา','zool','สัตววิทยา'],
+  plant:      ['พืช','ต้นไม้','ดอกไม้','หญ้า','ไม้ยืนต้น','พฤกษ','bot','botany'],
+  food:       ['อาหาร','กับข้าว','อาหารคาว','อาหารหวาน','ขนม'],
+  drink:      ['เครื่องดื่ม','น้ำดื่ม','ชา','กาแฟ','น้ำผลไม้','beverage'],
+  vehicle:    ['ยานพาหนะ','รถ','เรือ','เครื่องบิน','พาหนะ','ยานยนต์','vehicle','transport'],
+  house_item: ['เครื่องใช้ในบ้าน','เฟอร์นิเจอร์','เครื่องใช้','ของใช้','household','furniture'],
+  body_part:  ['อวัยวะ','ร่างกาย','กายวิภาค','กาย','anat','anatomy'],
+  family:     ['ครอบครัว','ญาติ','พ่อแม่','พี่น้อง','family','kinship'],
+  color:      ['สี','สีสัน','colour','color','hue'],
+  shape:      ['รูปร่าง','รูปทรง','เรขาคณิต','shape','geometry'],
+  nature:     ['ธรรมชาติ','ภูมิศาสตร์','ป่า','ภูเขา','แม่น้ำ','nature','geography'],
+  weather:    ['อากาศ','สภาพอากาศ','ฝน','พายุ','ลม','เมฆ','weather','climate'],
+  sport:      ['กีฬา','การแข่งขัน','ออกกำลังกาย','sport','game','athletics'],
+  hobby:      ['งานอดิเรก','กิจกรรมยามว่าง','กิจกรรม','hobby','pastime','recreation'],
+  fruit:      ['ผลไม้','ลูกไม้','fruit'],
+  vegetable:  ['ผัก','พืชผัก','vegetable','veggie'],
+};
+const MANUAL_FOREIGN_KW = ['ทับศัพท์','ภาษาต่างประเทศ','ยืมมาจาก','มาจากภาษา','borrowed','loanword'];
+const MANUAL_ROYAL_KW   = ['ราชาศัพท์','ราชาศัพย์','คำราชาศัพท์','royal'];
+
+function analyzeText() {
+  const text = document.getElementById('manualText').value;
+  const tLow = text.toLowerCase();
+  const matches = [];
+
+  // Check each semantic category
+  for (const [cat, keywords] of Object.entries(MANUAL_KEYWORD_MAP)) {
+    const hit = keywords.find(kw => tLow.includes(kw.toLowerCase()));
+    const cb = document.querySelector(`#manualCatGroup input[value="${cat}"]`);
+    if (cb) {
+      cb.checked = !!hit;
+      if (hit) matches.push(`พบ "${hit}" → ${cb.nextElementSibling.textContent}`);
+    }
+  }
+
+  // Special flags
+  const isForeign = MANUAL_FOREIGN_KW.some(kw => tLow.includes(kw));
+  const isRoyal   = MANUAL_ROYAL_KW.some(kw => tLow.includes(kw));
+  document.getElementById('mc_foreign').checked = isForeign;
+  document.getElementById('mc_royal').checked   = isRoyal;
+  if (isForeign) matches.push('พบคำต่างประเทศ → คำต่างประเทศ');
+  if (isRoyal)   matches.push('พบราชาศัพท์ → ราชาศัพท์');
+
+  const list = document.getElementById('manualMatchList');
+  if (matches.length) {
+    list.innerHTML = matches.map(m => `✦ ${m}`).join('<br>');
+  } else {
+    list.innerHTML = '<span style="color:var(--dim)">ไม่พบหมวดหมู่ที่ตรงกัน — เลือกด้วยตนเอง</span>';
+  }
+
+  // Highlight the textarea border
+  document.getElementById('manualText').style.borderColor = matches.length ? 'var(--gold)' : 'var(--red)';
+}
+
+function applyManualCats() {
+  // Copy semantic categories to Card Setup tab
+  const cats = [...document.querySelectorAll('#manualCatGroup input:checked')].map(cb => cb.value);
+  ['animal','plant','food','drink','fruit','vegetable','vehicle','house_item',
+   'body_part','family','color','shape','nature','weather','sport','hobby'].forEach(val => {
+    const dst = document.querySelector(`#sCatGroup input[value="${val}"]`);
+    if (dst) dst.checked = cats.includes(val);
+  });
+
+  // Copy special flags
+  document.getElementById('s_viss').checked    = document.getElementById('mc_viss').checked;
+  document.getElementById('s_bun').checked     = document.getElementById('mc_bun').checked;
+  document.getElementById('s_foreign').checked = document.getElementById('mc_foreign').checked;
+  document.getElementById('s_royal').checked   = document.getElementById('mc_royal').checked;
+
+  // Switch to Card Setup
+  switchTab('setup');
+}
+
+// ── Setup tab: word lookup (show found/not-found only; no Score tab side-effects)
+function setupLookup() {
+  const w = document.getElementById('sWord').value.trim();
+  const box = document.getElementById('sDbResult');
+  if (!w) { box.classList.remove('show','found','miss'); return; }
+  const e = DB[w];
+  box.className = 's-db-result show ' + (e ? 'found' : 'miss');
+  box.textContent = e
+    ? `✓ Found — ${e[0]} syl · ${e[1]} · ${e[2]}`
+    : '✗ Not in database — set properties manually on Score tab';
+}
+
+// ── Setup tab: bonus level selector
+function setSetupLevel(lv) {
+  setupBonusLevel = lv;
+  document.querySelectorAll('.slbtn').forEach(b => b.classList.toggle('on', +b.dataset.slv === lv));
+  document.getElementById('sBonusNote').textContent = `Bonus: +${[1,2,4,6][lv]} if condition met`;
+}
+
+// ── Transfer setup values → score tab, then switch
+function goToScore() {
+  // 1. Copy word and run full DB lookup (fills POS, live/dead, consonant classes)
+  document.getElementById('wordInput').value = document.getElementById('sWord').value.trim();
+  lookupWord();
+
+  // 2. Sync categories
+  ['animal','plant','food','drink','fruit','vegetable','vehicle','house_item',
+   'body_part','family','color','shape','nature','weather','sport','hobby'].forEach(val => {
+    const src = document.querySelector(`#sCatGroup input[value="${val}"]`);
+    const dst = document.querySelector(`#catGroup input[value="${val}"]`);
+    if (src && dst) dst.checked = src.checked;
+  });
+
+  // 3. Sync special flags
+  ['viss','bun','foreign','royal'].forEach(k => {
+    const src = document.getElementById(`s_${k}`);
+    const dst = document.getElementById(`f_${k}`);
+    if (src && dst) dst.checked = src.checked;
+  });
+
+  // 4. Sync bonus card
+  bonusLevel = setupBonusLevel;
+  document.querySelectorAll('.lbtn').forEach(b => b.classList.toggle('on', +b.dataset.lv === bonusLevel));
+  document.getElementById('bonusNote').textContent = `Bonus: +${[1,2,4,6][bonusLevel]} if condition met`;
+  document.getElementById('condA').value = document.getElementById('sCondA').value;
+  document.getElementById('condB').value = document.getElementById('sCondB').value;
+
+  // 5. Switch tab and recalculate
+  switchTab('score');
+  recalc();
+}
+
+// ════════════════════════════════════════════════════════════
+// DATABASE BROWSER
+// ════════════════════════════════════════════════════════════
+let _dbRows    = null;   // full array, built once
+let _dbFiltered = null;  // after filters
+let _dbPage    = 0;
+const DB_PER_PAGE = 50;
+
+const POS_LABEL = {
+  NOUN:'Noun', VERB:'Verb', ADJ:'Adj', ADV:'Adv',
+  PRON:'Pron', INTJ:'Intj', PREP:'Prep', CONJ:'Conj',
+};
+
+function initDBView() {
+  if (_dbRows) { renderDBTable(); return; }
+  // Build flat array from WORD_DB (already loaded)
+  _dbRows = Object.entries(DB).map(([word, e]) => ({
+    word,
+    syl:  e[0],
+    pos:  e[1] || '',
+    ld:   e[2] || '',
+    fc:   e[3] || '',
+    lc:   e[4] || '',
+    viss: e[5] || 0,
+    bun:  e[6] || 0,
+    cats: e[7] || '',
+  }));
+  _dbFiltered = _dbRows;
+  document.getElementById('dbTotalBadge').textContent =
+    _dbRows.length.toLocaleString() + ' คำ';
+  renderDBTable();
+}
+
+function filterDB() {
+  const q   = document.getElementById('dbSearch').value.trim();
+  const pos = document.getElementById('dbPosFilter').value;
+  const ld  = document.getElementById('dbLdFilter').value;
+  const cat = document.getElementById('dbCatFilter').value;
+
+  _dbFiltered = _dbRows.filter(r => {
+    if (q   && !r.word.includes(q))            return false;
+    if (pos && r.pos !== pos)                  return false;
+    if (ld  && r.ld  !== ld)                   return false;
+    if (cat && !r.cats.split(',').includes(cat)) return false;
+    return true;
+  });
+  _dbPage = 0;
+  renderDBTable();
+}
+
+function clearDBFilters() {
+  document.getElementById('dbSearch').value    = '';
+  document.getElementById('dbPosFilter').value = '';
+  document.getElementById('dbLdFilter').value  = '';
+  document.getElementById('dbCatFilter').value = '';
+  filterDB();
+}
+
+function renderDBTable() {
+  const total = _dbFiltered.length;
+  const start = _dbPage * DB_PER_PAGE;
+  const end   = Math.min(start + DB_PER_PAGE, total);
+  const slice = _dbFiltered.slice(start, end);
+
+  const rows = slice.length === 0
+    ? `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--dim)">ไม่พบคำที่ตรงกัน</td></tr>`
+    : slice.map(r => {
+        const posLbl = POS_LABEL[r.pos] || r.pos;
+        const ldBadge = r.ld === 'live'
+          ? `<span style="color:var(--green);font-size:10px">เป็น</span>`
+          : r.ld === 'dead'
+          ? `<span style="color:var(--red);font-size:10px">ตาย</span>`
+          : `<span style="color:var(--dim);font-size:10px">—</span>`;
+        const catsDisplay = r.cats
+          ? r.cats.split(',').filter(Boolean)
+              .map(c => `<span style="background:var(--surf2);border:1px solid var(--border);
+                border-radius:3px;padding:1px 5px;font-size:10px;margin:1px;display:inline-block">${c}</span>`)
+              .join('')
+          : '<span style="color:var(--dim);font-size:11px">—</span>';
+        const wordEsc = r.word.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return `<tr>
+          <td class="db-word">${r.word}</td>
+          <td style="color:var(--dim)">${r.syl}</td>
+          <td style="color:var(--text)">${posLbl}</td>
+          <td>${ldBadge}</td>
+          <td style="color:var(--dim);font-size:11px">${r.fc || '—'}</td>
+          <td style="color:var(--dim);font-size:11px">${r.lc === 'mid' ? 'กลาง/สูง' : r.lc === 'low' ? 'ต่ำ' : '—'}</td>
+          <td class="db-cats">${catsDisplay}</td>
+          <td><button class="btn btn-sm" title="โหลดไปยัง Card Setup"
+            onclick="loadWordFromDB('${wordEsc}')">→</button></td>
+        </tr>`;
+      }).join('');
+
+  document.getElementById('dbTableBody').innerHTML = rows;
+
+  // Status bar
+  document.getElementById('dbStatusBar').textContent = total === 0
+    ? 'ไม่พบคำที่ตรงกัน'
+    : `แสดง ${(start+1).toLocaleString()}–${end.toLocaleString()} จาก ${total.toLocaleString()} คำ`;
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(total / DB_PER_PAGE));
+  document.getElementById('dbPageInfo').textContent =
+    `หน้า ${(_dbPage+1).toLocaleString()} / ${totalPages.toLocaleString()}`;
+  document.getElementById('dbPrevBtn').disabled = _dbPage === 0;
+  document.getElementById('dbNextBtn').disabled = _dbPage >= totalPages - 1;
+}
+
+function dbGoPage(dir) {
+  const totalPages = Math.ceil(_dbFiltered.length / DB_PER_PAGE);
+  _dbPage = Math.max(0, Math.min(totalPages - 1, _dbPage + dir));
+  renderDBTable();
+  // Scroll table to top
+  const wrap = document.querySelector('.db-table-wrap');
+  if (wrap) wrap.scrollTop = 0;
+}
+
+function loadWordFromDB(word) {
+  document.getElementById('sWord').value = word;
+  setupLookup();
+  switchTab('setup');
 }
 
 // ════════════════════════════════════════════════════════════

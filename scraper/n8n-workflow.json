@@ -1,0 +1,120 @@
+{
+  "name": "Roi-Kham — Nightly Category Scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule",
+      "name": "Every Night at 2AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd \"{{ $env.ROI_KHAM_PATH }}\" && python scraper/scrape_categories.py --limit 1000 2>&1"
+      },
+      "id": "node-scrape",
+      "name": "Run Scraper",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [480, 300],
+      "notes": "Scrapes ORST → Longdo → Thai Wiktionary for each uncategorized word.\nSet ROI_KHAM_PATH in n8n Environment Variables to your project folder.\nExample: C:\\Users\\ASUS\\Documents\\Vault\\Claude Vault\\roi-kham-cardgame"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.exitCode }}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "node-check",
+      "name": "Scraper Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd \"{{ $env.ROI_KHAM_PATH }}\" && node export_words.js 2>&1"
+      },
+      "id": "node-export",
+      "name": "Re-export words.js",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [960, 240],
+      "notes": "Regenerates prototype/words.js with categories at index [7].\nThe prototype's lookupWord() will then auto-check category pills."
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "result",
+              "value": "={{ $json.stdout }}"
+            }
+          ]
+        }
+      },
+      "id": "node-log-error",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [960, 400],
+      "notes": "Scraper failed — check scraper/logs/<today>.log for details."
+    },
+    {
+      "parameters": {
+        "content": "## Roi-Kham Category Scraper — Setup\n\n### Prerequisites\n1. Python 3.10+ installed and on PATH\n2. Dependencies: `pip install -r scraper/requirements.txt`\n3. Node.js 22+ for re-export step\n\n### n8n Environment Variables\nAdd these in Settings → Environment Variables:\n```\nROI_KHAM_PATH = C:\\Users\\ASUS\\Documents\\Vault\\Claude Vault\\roi-kham-cardgame\n```\n(Adjust to your actual project path)\n\n### Manual Test (run from project root)\n```bash\n# Test single word\npython scraper/scrape_categories.py --word สุนัข\n\n# Run 50 words\npython scraper/scrape_categories.py --limit 50\n\n# Force specific source\npython scraper/scrape_categories.py --limit 100 --source longdo\n\n# Re-scrape already-categorized words\npython scraper/scrape_categories.py --overwrite --limit 200\n```\n\n### Logs\n`scraper/logs/<YYYY-MM-DD>.log` — full run details\nStdout: JSON stats summary\n\n### Sources Tried (in order)\n1. Royal Institute Dictionary (dict.orst.go.th)\n2. Longdo Dictionary (dict.longdo.com)\n3. Thai Wiktionary (th.wiktionary.org)",
+        "height": 560,
+        "width": 420
+      },
+      "id": "node-sticky",
+      "name": "Setup Instructions",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [80, 520]
+    }
+  ],
+  "connections": {
+    "Every Night at 2AM": {
+      "main": [
+        [{ "node": "Run Scraper", "type": "main", "index": 0 }]
+      ]
+    },
+    "Run Scraper": {
+      "main": [
+        [{ "node": "Scraper Succeeded?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Scraper Succeeded?": {
+      "main": [
+        [{ "node": "Re-export words.js", "type": "main", "index": 0 }],
+        [{ "node": "Log Error",          "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "roi-kham-category-scraper",
+  "tags": ["roi-kham", "scraper", "thai"]
+}
