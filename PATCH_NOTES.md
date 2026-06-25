@@ -2,6 +2,47 @@
 
 ---
 
+## v0.5 — 2026-06-26
+
+### New Features
+
+#### Local-LLM Word Categorizer (`scraper/categorize_llm.py`)
+Categorizes Thai words by **meaning** using a local Ollama model — far more accurate
+than the keyword-matching scraper. Runs fully offline, no API key, stdlib only.
+
+- **Model**: default `qwen3.5:2b` (override with `--model`, e.g. `qwen2.5:7b`)
+- **Structured output**: constrains the model to a JSON schema over the exact 16 game
+  categories, so it can't invent categories
+- **Tuned prompt**: few-shot examples steer abstract/legal/grammatical words to *no
+  category* (e.g. กฎหมาย, วิ่ง, และ → none), while concrete nouns tag correctly
+  (แมว→animal, กล้วย→fruit, เก้าอี้→house_item)
+- **Resume-safe**: a new `cat_checked` column marks processed words, so chunked/stopped
+  runs pick up where they left off instead of re-querying empty-category words
+- **Batched** requests with per-word fallback for reliability
+- **Auto-exports** `words.js` at the end (skip with `--no-export`)
+- **CLI**: `--word`, `--limit`, `--model`, `--batch`, `--overwrite`, `--no-export`
+
+```
+python scraper/categorize_llm.py --word แมว        # test one word
+python scraper/categorize_llm.py --limit 5000      # a chunk (repeat to continue)
+python scraper/categorize_llm.py                   # all remaining words
+```
+
+#### Compound Decomposer (`scraper/decompose_words.py`)
+Splits compound Thai words into known sub-words via DP segmentation and inherits the
+union of their categories (ประจำวัน → ประ + จำ + วัน). Fills parents once their parts
+are categorized. Auto-exports `words.js`.
+
+### Improvements
+- **`export_words.js`**: fixed a filter that silently dropped 611 multi-word phrases —
+  the prototype now loads **62,098** words (was 61,487)
+- **`scraper/scrape_categories.py`**: now processes all DB words by default
+  (`--new-only` for uncategorized only) and auto-exports `words.js`
+- **`scraper/run_pipeline.bat`**: 3-step pipeline — LLM categorize → decompose → export
+  (the web scraper is now optional/legacy; the local LLM supersedes its keyword matching)
+
+---
+
 ## v0.4 — 2026-06-25
 
 ### New Features

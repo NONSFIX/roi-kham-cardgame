@@ -4,12 +4,15 @@ cd /d "C:\Users\ASUS\Documents\Vault\Claude Vault\roi-kham-cardgame"
 echo ========================================
 echo  Roi-Kham Update Pipeline
 echo ========================================
+echo  Requires Ollama running with the model (default qwen3.5:2b).
+echo  The web scraper (scrape_categories.py) is optional/legacy and
+echo  is NOT part of this pipeline -- the local LLM supersedes it.
 
 echo.
-echo [1/3] Web scraper -- querying Thai dictionaries (1000 words)...
-python scraper/scrape_categories.py --limit 1000 --no-export
+echo [1/3] Local-LLM categorizer (5000 words)...
+python scraper/categorize_llm.py --limit 5000 --no-export
 if errorlevel 1 (
-    echo ERROR: Scraper failed. Check scraper/logs/ for details.
+    echo ERROR: Categorizer failed. Check scraper/logs/ for details.
     pause
     exit /b 1
 )
