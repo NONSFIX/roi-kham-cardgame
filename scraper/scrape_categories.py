@@ -8,12 +8,16 @@ Sources (tried in order until categories found):
   2. Longdo Dictionary             — dict.longdo.com
   3. Thai Wiktionary               — th.wiktionary.org
 
+After scraping, automatically re-exports prototype/words.js via export_words.js.
+Use --no-export to skip the export step.
+
 Usage:
-  python scraper/scrape_categories.py                    # all uncategorized words
+  python scraper/scrape_categories.py                    # all words (up to --limit)
+  python scraper/scrape_categories.py --new-only         # skip words that already have categories
   python scraper/scrape_categories.py --limit 500        # first N words
   python scraper/scrape_categories.py --word สุนัข        # single word test
   python scraper/scrape_categories.py --source longdo    # force specific source
-  python scraper/scrape_categories.py --overwrite        # re-scrape already-categorized words
+  python scraper/scrape_categories.py --no-export        # skip export_words.js at end
 
 Run from project root:
   cd "C:\\Users\\ASUS\\Documents\\Vault\\Claude Vault\\roi-kham-cardgame"
@@ -28,6 +32,7 @@ import argparse
 import json
 import logging
 import re
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
@@ -309,18 +314,20 @@ async def main(args: argparse.Namespace):
         # Build word list
         if args.word:
             words = [args.word]
-        elif args.overwrite:
+        elif args.new_only:
+            # Only words that have no categories yet
             cur = await db.execute(
-                "SELECT word FROM words WHERE word NOT LIKE '% %' AND pos <> 'PUNC' "
+                "SELECT word FROM words "
+                "WHERE (categories IS NULL OR categories = '') "
+                "AND word NOT LIKE '% %' AND pos <> 'PUNC' "
                 "ORDER BY word LIMIT ?", (args.limit,)
             )
             rows = await cur.fetchall()
             words = [r[0] for r in rows]
         else:
+            # Default: process all existing words in the database
             cur = await db.execute(
-                "SELECT word FROM words "
-                "WHERE (categories IS NULL OR categories = '') "
-                "AND word NOT LIKE '% %' AND pos <> 'PUNC' "
+                "SELECT word FROM words WHERE word NOT LIKE '% %' AND pos <> 'PUNC' "
                 "ORDER BY word LIMIT ?", (args.limit,)
             )
             rows = await cur.fetchall()
@@ -381,6 +388,9 @@ async def main(args: argparse.Namespace):
     log.info("=== DONE === %s", json.dumps(summary))
     print(json.dumps(summary, ensure_ascii=False))
 
+    if not getattr(args, "no_export", False):
+        _run_export()
+
 
 async def _flush_batch(db: aiosqlite.Connection, batch: list[dict]):
     await db.executemany(
@@ -390,6 +400,21 @@ async def _flush_batch(db: aiosqlite.Connection, batch: list[dict]):
     await db.commit()
 
 
+def _run_export():
+    log.info("Running export_words.js …")
+    result = subprocess.run(
+        ["node", str(ROOT / "export_words.js")],
+        capture_output=True, text=True, cwd=str(ROOT),
+    )
+    if result.returncode == 0:
+        last_line = result.stdout.strip().splitlines()[-1] if result.stdout.strip() else "ok"
+        log.info("Export OK: %s", last_line)
+        print(last_line)
+    else:
+        log.error("Export FAILED:\n%s", result.stderr)
+        print("ERROR: export_words.js failed — see log", file=sys.stderr)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Roi-Kham category scraper")
     parser.add_argument("--word",      help="Test a single Thai word")
@@ -397,8 +422,10 @@ if __name__ == "__main__":
                         help="Max words to process (default 1000)")
     parser.add_argument("--source",    choices=["orst", "longdo", "wiktionary"],
                         help="Force a specific source (default: try all)")
-    parser.add_argument("--overwrite", action="store_true",
-                        help="Re-scrape already-categorized words")
+    parser.add_argument("--new-only",  dest="new_only", action="store_true",
+                        help="Only scrape words that have no categories yet")
+    parser.add_argument("--no-export", dest="no_export", action="store_true",
+                        help="Skip running export_words.js at the end")
     args = parser.parse_args()
 
     asyncio.run(main(args))
