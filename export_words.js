@@ -36,7 +36,7 @@ const db = new DatabaseSync(DB_PATH);
 const rows = db.prepare(
   "SELECT word, syllables, pos, leading_class, final_class, live_dead, has_sara_a, has_ban_bor, " +
   "COALESCE(categories, '') AS categories " +
-  "FROM words WHERE word NOT LIKE '% %' AND pos <> 'PUNC' AND word <> ''"
+  "FROM words WHERE pos <> 'PUNC' AND word <> ''"
 ).all();
 db.close();
 
