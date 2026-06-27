@@ -127,6 +127,45 @@ console = Console() if RICH else None
 # PARSING HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
 
+# ── Word-boundary matching (thai_tokenizer) ─────────────────────────────────────
+# Raw substring matching is unsafe for Thai: short keywords match INSIDE unrelated
+# words (e.g. 'สี' inside 'เสียหาย' → false 'color'; 'รถ' inside 'ปรารถนา' →
+# false 'vehicle'). We tokenize the scraped definition into real words and match
+# Thai keywords only at word boundaries. English keywords keep substring matching
+# (they're space-separated, so it's already safe). Falls back to the old substring
+# behaviour if thai_tokenizer / PyThaiNLP isn't installed.
+_THAI_RE = re.compile(r"[฀-๿]")
+
+try:
+    from thai_tokenizer import split as _tok_split
+    _tok_split("รถ")              # probe: confirms a backend engine is usable
+    _TOKENIZER_OK = True
+except Exception:                 # ImportError or EngineNotInstalledError
+    _TOKENIZER_OK = False
+
+
+def _boundary_text(s: str) -> str:
+    """Tokenize and rejoin with spaces so keywords can be matched at word
+    boundaries: ' word1 word2 word3 ' (wrapped + lowercased)."""
+    return " " + " ".join(_tok_split(s)).lower() + " "
+
+
+# Precompute, per category, which keywords go through the token path (Thai) vs
+# the substring path (English). Done once at import, not per word.
+_THAI_MATCHERS: dict[str, list[str]] = {}
+_SUB_MATCHERS:  dict[str, list[str]] = {}
+if _TOKENIZER_OK:
+    for _cat, _kws in KEYWORD_MAP.items():
+        thai, sub = [], []
+        for _kw in _kws:
+            if _THAI_RE.search(_kw):
+                thai.append(_boundary_text(_kw))
+            else:
+                sub.append(_kw.lower())
+        _THAI_MATCHERS[_cat] = thai
+        _SUB_MATCHERS[_cat]  = sub
+
+
 def extract_categories(text: str) -> tuple[list[str], int, int]:
     """
     Scan text for category keywords.
@@ -134,9 +173,18 @@ def extract_categories(text: str) -> tuple[list[str], int, int]:
     """
     t = text.lower()
     found = set()
-    for cat, keywords in KEYWORD_MAP.items():
-        if any(kw.lower() in t for kw in keywords):
-            found.add(cat)
+
+    if _TOKENIZER_OK:
+        boundary = _boundary_text(text)
+        for cat in KEYWORD_MAP:
+            if any(kwp in boundary for kwp in _THAI_MATCHERS[cat]) \
+               or any(kw in t for kw in _SUB_MATCHERS[cat]):
+                found.add(cat)
+    else:
+        # Legacy substring matching (tokenizer unavailable).
+        for cat, keywords in KEYWORD_MAP.items():
+            if any(kw.lower() in t for kw in keywords):
+                found.add(cat)
 
     is_foreign = 1 if any(m in t for m in FOREIGN_MARKERS) else 0
     is_royal   = 1 if any(m in t for m in ROYAL_MARKERS)   else 0
