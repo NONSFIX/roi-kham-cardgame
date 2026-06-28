@@ -501,6 +501,101 @@ header .ver { font-size:10px; color:var(--dim); background:var(--surf2); border:
 .db-pagination button:disabled { opacity: .3; cursor: default; }
 #dbPageInfo { font-size: 12px; color: var(--dim); min-width: 120px; text-align: center; }
 #dbStatusBar { font-size: 11px; color: var(--dim); }
+
+/* ── Play / Quiz Tab ── */
+#tab-play {
+  height: calc(100vh - 50px);
+  overflow-y: auto;
+  padding: 22px 20px;
+  box-sizing: border-box;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.play-controls { display:flex; flex-wrap:wrap; gap:18px; }
+.play-ctrl-group { display:flex; flex-direction:column; gap:6px; }
+.play-ctrl-group .section-label { margin-bottom:2px; }
+.play-pills { display:flex; flex-wrap:wrap; gap:6px; }
+.play-pill {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 13px;
+  padding: 5px 14px;
+  color: var(--dim);
+  transition: border-color .1s, color .1s, background .1s;
+}
+.play-pill:hover { border-color: var(--dim); color: var(--text); }
+.play-pill.active { border-color: var(--gold); color: var(--gold); background:#1a1600; }
+
+.scoreboard {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+.score-stat {
+  flex: 1;
+  min-width: 90px;
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.score-stat .num { font-size: 1.6rem; font-weight: 700; color: var(--gold); line-height: 1.1; }
+.score-stat .lbl { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); margin-top: 3px; }
+
+.quiz-card {
+  background: linear-gradient(135deg, var(--surf), var(--surf2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 12px;
+  padding: 30px 24px;
+  text-align: center;
+}
+.quiz-word { font-size: 3rem; font-weight: 600; color: var(--text); line-height: 1.2; word-break: break-word; }
+.quiz-prompt { font-size: 1.15rem; color: var(--dim); margin-top: 14px; }
+.quiz-prompt b { color: var(--gold); font-weight: 600; }
+
+.quiz-answers { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.ans-btn {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surf2);
+  color: var(--text);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding: 16px 0;
+  cursor: pointer;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.ans-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+.ans-btn:disabled { opacity: .45; cursor: default; }
+.ans-true:hover:not(:disabled)  { border-color: var(--green); color: var(--green); }
+.ans-false:hover:not(:disabled) { border-color: var(--red);   color: var(--red); }
+.ans-skip { min-width: 90px; max-width: 130px; font-size: 1rem; color: var(--dim); }
+
+.quiz-feedback {
+  border-radius: 9px;
+  padding: 14px 16px;
+  text-align: center;
+  font-size: 1.05rem;
+  min-height: 24px;
+  border: 1px solid transparent;
+}
+.quiz-feedback.correct { background:#10241a; border-color:var(--green); color:var(--green); }
+.quiz-feedback.wrong   { background:#2a1010; border-color:var(--red);   color:var(--red); }
+.quiz-feedback.neutral { background:var(--surf); border-color:var(--border); color:var(--dim); }
+.quiz-feedback .reveal { display:block; margin-top:6px; font-size:.9rem; color:var(--text); }
+.quiz-next { display:flex; justify-content:center; }
 </style>
 </head>
 <body>
@@ -510,6 +605,7 @@ header .ver { font-size:10px; color:var(--dim); background:var(--surf2); border:
   <span class="sub">ร้อย-คำ &nbsp;·&nbsp; Word Scoring Prototype</span>
   <span class="ver">v0.3 · 61,487 words</span>
   <nav class="tab-nav">
+    <button class="tab-btn"        id="tabBtnPlay"    onclick="switchTab('play')">เล่นเกม</button>
     <button class="tab-btn active" id="tabBtnSetup"   onclick="switchTab('setup')">Card Setup</button>
     <button class="tab-btn"        id="tabBtnManual"  onclick="switchTab('manual')">Manual Category</button>
     <button class="tab-btn"        id="tabBtnScore"   onclick="switchTab('score')">Score Calculator</button>
@@ -983,6 +1079,64 @@ header .ver { font-size:10px; color:var(--dim); background:var(--surf2); border:
 </div>
 </div><!-- /tab-score -->
 
+<!-- ══════════════════════════════════════
+     PLAY TAB — TRUE/FALSE QUIZ GAME
+══════════════════════════════════════ -->
+<div id="tab-play" style="display:none">
+
+  <!-- Difficulty + Mode controls -->
+  <div class="play-controls">
+    <div class="play-ctrl-group">
+      <div class="section-label">ระดับ (Difficulty)</div>
+      <div class="play-pills" id="playDiff">
+        <button class="play-pill active" data-diff="easy"   onclick="setDiff('easy')">ง่าย</button>
+        <button class="play-pill"        data-diff="medium" onclick="setDiff('medium')">กลาง</button>
+        <button class="play-pill"        data-diff="hard"   onclick="setDiff('hard')">ยาก</button>
+      </div>
+    </div>
+    <div class="play-ctrl-group">
+      <div class="section-label">โหมด (Mode)</div>
+      <div class="play-pills" id="playMode">
+        <button class="play-pill active" data-mode="pos"   onclick="setMode('pos')">ชนิดคำ</button>
+        <button class="play-pill"        data-mode="final" onclick="setMode('final')">มาตราตัวสะกด</button>
+        <button class="play-pill"        data-mode="spell" onclick="setMode('spell')">คำถูก</button>
+        <button class="play-pill"        data-mode="mixed" onclick="setMode('mixed')">รวม</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="scoreboard">
+    <div class="score-stat"><div class="num" id="sbScore">0</div><div class="lbl">คะแนน</div></div>
+    <div class="score-stat"><div class="num" id="sbStreak">0</div><div class="lbl">สตรีค</div></div>
+    <div class="score-stat"><div class="num" id="sbBest">0</div><div class="lbl">สตรีคสูงสุด</div></div>
+    <div class="score-stat"><div class="num" id="sbAnswered">0</div><div class="lbl">ตอบแล้ว</div></div>
+    <div class="score-stat" style="flex:0 0 auto; display:flex; align-items:center;">
+      <button class="btn btn-sm" onclick="resetQuiz()">เริ่มใหม่</button>
+    </div>
+  </div>
+
+  <!-- Question card -->
+  <div class="quiz-card">
+    <div class="quiz-word" id="quizWord">—</div>
+    <div class="quiz-prompt" id="quizPrompt">กดเล่นเพื่อเริ่ม</div>
+  </div>
+
+  <!-- Answer buttons -->
+  <div class="quiz-answers">
+    <button class="ans-btn ans-true"  id="ansTrue"  onclick="answerQuiz(true)">ถูก ✓</button>
+    <button class="ans-btn ans-false" id="ansFalse" onclick="answerQuiz(false)">ผิด ✗</button>
+    <button class="ans-btn ans-skip"  id="ansSkip"  onclick="answerQuiz('skip')">ข้าม</button>
+  </div>
+
+  <!-- Feedback + next -->
+  <div class="quiz-feedback neutral" id="quizFeedback">เลือกระดับและโหมด แล้วเริ่มตอบได้เลย</div>
+  <div class="quiz-next">
+    <button class="btn btn-gold" id="quizNextBtn" onclick="nextQuestion()" style="display:none">ข้อต่อไป →</button>
+  </div>
+
+</div><!-- /tab-play -->
+
 <script src="words.js"></script>
 <script>
 // ════════════════════════════════════════════════════════════
@@ -1356,16 +1510,19 @@ function setVal(id, val, positive) {
 let setupBonusLevel = 0;
 
 function switchTab(name) {
+  document.getElementById('tab-play').style.display   = name === 'play'   ? 'flex'  : 'none';
   document.getElementById('tab-setup').style.display  = name === 'setup'  ? 'flex'  : 'none';
   document.getElementById('tab-manual').style.display = name === 'manual' ? 'block' : 'none';
   document.getElementById('tab-score').style.display  = name === 'score'  ? 'block' : 'none';
   document.getElementById('tab-db').style.display     = name === 'db'     ? 'flex'  : 'none';
+  document.getElementById('tabBtnPlay').classList.toggle('active',   name === 'play');
   document.getElementById('tabBtnSetup').classList.toggle('active',  name === 'setup');
   document.getElementById('tabBtnManual').classList.toggle('active', name === 'manual');
   document.getElementById('tabBtnScore').classList.toggle('active',  name === 'score');
   document.getElementById('tabBtnDb').classList.toggle('active',     name === 'db');
 
   if (name === 'db') initDBView();
+  if (name === 'play') initPlay();
 
   // Update Manual tab word badge when switching to it
   if (name === 'manual') {
@@ -1643,6 +1800,239 @@ function clearAll() {
   document.getElementById("condB").value = "None";
   document.getElementById("bonusNote").textContent = "Bonus: +1 if condition met";
   recalc();
+}
+
+// ════════════════════════════════════════════════════════════
+// PLAY TAB — TRUE/FALSE QUIZ GAME
+// ════════════════════════════════════════════════════════════
+const QUIZ = {
+  diff: 'easy', mode: 'pos',
+  pools: {},          // difficulty -> cached word array
+  current: null,      // active question object
+  awaiting: false,    // answered, waiting for "next"
+  score: 0, streak: 0, best: 0, answered: 0, skipCount: 0,
+};
+
+// POS code -> Thai word-type label (ADJ & ADV both = คำวิเศษณ์)
+const POS_TH = {
+  NOUN:'คำนาม', VERB:'คำกริยา', ADJ:'คำวิเศษณ์', ADV:'คำวิเศษณ์',
+  PRON:'คำสรรพนาม', INTJ:'คำอุทาน', PREP:'คำบุพบท', CONJ:'คำสันธาน',
+};
+const POS_CHOICES = ['คำนาม','คำกริยา','คำวิเศษณ์','คำสรรพนาม','คำอุทาน','คำบุพบท','คำสันธาน'];
+
+// final_class -> มาตราตัวสะกด label
+const FINAL_TH = {
+  'กก':'แม่กก','กด':'แม่กด','กบ':'แม่กบ','กง':'แม่กง',
+  'กน':'แม่กน','กม':'แม่กม','เกย':'แม่เกย','เกอว':'แม่เกอว',
+};
+const NO_FINAL = 'ไม่มีตัวสะกด (แม่ ก กา)';
+const FINAL_CHOICES = ['แม่กก','แม่กด','แม่กบ','แม่กง','แม่กน','แม่กม','แม่เกย','แม่เกอว', NO_FINAL];
+
+// Same-sound Thai consonant confusion groups (real consonants only)
+const CONFUSE_GROUPS = [
+  ['ส','ศ','ษ','ซ'],
+  ['ต','ฏ','ถ','ฐ','ท','ธ','ฑ','ฒ'],
+  ['น','ณ'],
+  ['ก','ข','ฃ','ค','ฅ','ฆ'],
+  ['พ','ภ','ป'],
+  ['ช','ฌ','ฉ'],
+  ['ด','ฎ'],
+  ['ล','ฬ'],
+  ['ห','ฮ'],
+  ['ย','ญ'],
+];
+const CONFUSE_MAP = {};
+CONFUSE_GROUPS.forEach(g => g.forEach(c => { CONFUSE_MAP[c] = g; }));
+
+const isThaiWord = w => /^[฀-๿]+$/.test(w);   // pure Thai, no space/dot/latin/digit
+const randOf = arr => arr[Math.floor(Math.random() * arr.length)];
+
+function buildPool(diff) {
+  if (QUIZ.pools[diff]) return QUIZ.pools[diff];
+  const out = [];
+  for (const w in DB) {
+    const e = DB[w], syl = e[0], pos = e[1];
+    if (diff === 'hard') {
+      if (!w || /^[\s.]+$/.test(w)) continue;        // drop empty / pure punctuation
+      out.push(w);
+    } else {
+      if (!isThaiWord(w)) continue;                  // drops abbreviations, spaces, latin
+      if (pos === 'NPRP') continue;                  // proper nouns (defensive)
+      if (diff === 'easy'   && syl > 2) continue;
+      if (diff === 'medium' && syl > 3) continue;
+      out.push(w);
+    }
+  }
+  QUIZ.pools[diff] = out;
+  return out;
+}
+
+function pickWord(pred) {
+  const pool = buildPool(QUIZ.diff);
+  if (!pool.length) return null;
+  for (let i = 0; i < 50; i++) {
+    const w = randOf(pool);
+    if (!pred || pred(w, DB[w])) return w;
+  }
+  return null;
+}
+
+// Corrupt a real word into a guaranteed non-word by swapping a same-sound consonant.
+function makeMisspelling(word) {
+  const chars = [...word];
+  const positions = [];
+  chars.forEach((c, i) => { if (CONFUSE_MAP[c]) positions.push(i); });
+  // shuffle positions
+  for (let i = positions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [positions[i], positions[j]] = [positions[j], positions[i]];
+  }
+  for (const pos of positions) {
+    const alts = CONFUSE_MAP[chars[pos]].filter(c => c !== chars[pos]);
+    for (let i = alts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [alts[i], alts[j]] = [alts[j], alts[i]];
+    }
+    for (const alt of alts) {
+      const cand = chars.slice(); cand[pos] = alt;
+      const candStr = cand.join('');
+      if (candStr !== word && !(candStr in DB)) return candStr;  // not a real word → safe
+    }
+  }
+  return null;
+}
+
+// ── Question generators → {displayWord, prompt, correct, reveal}
+function genPOS() {
+  const w = pickWord((w, e) => POS_TH[e[1]]);
+  if (!w) return null;
+  const realTh = POS_TH[DB[w][1]];
+  const showTrue = Math.random() < 0.5;
+  const claim = showTrue ? realTh : randOf(POS_CHOICES.filter(c => c !== realTh));
+  return { displayWord: w, prompt: `เป็น <b>${claim}</b> ใช่หรือไม่?`,
+           correct: showTrue, reveal: `"${w}" เป็น${realTh}` };
+}
+
+function finalLabel(e) {
+  const fc = e[3];
+  if (!fc || fc === 'none' || fc === 'สระ') return NO_FINAL;
+  return FINAL_TH[fc] || null;
+}
+function genFinal() {
+  const w = pickWord((w, e) => finalLabel(e));
+  if (!w) return null;
+  const realTh = finalLabel(DB[w]);
+  const showTrue = Math.random() < 0.5;
+  const claim = showTrue ? realTh : randOf(FINAL_CHOICES.filter(c => c !== realTh));
+  return { displayWord: w, prompt: `อยู่ในมาตรา <b>${claim}</b> ใช่หรือไม่?`,
+           correct: showTrue, reveal: `"${w}" อยู่ในมาตรา${realTh}` };
+}
+
+function genSpell() {
+  const showCorrect = Math.random() < 0.5;
+  if (!showCorrect) {
+    for (let i = 0; i < 30; i++) {
+      const w = pickWord(w => isThaiWord(w) && [...w].length >= 2);
+      if (!w) break;
+      const bad = makeMisspelling(w);
+      if (bad) return { displayWord: bad, prompt: 'สะกดถูกหรือไม่?',
+                        correct: false, reveal: `สะกดผิด — ที่ถูกคือ "${w}"` };
+    }
+  }
+  const w = pickWord(w => isThaiWord(w));     // correct (or fallback when corruption failed)
+  if (!w) return null;
+  return { displayWord: w, prompt: 'สะกดถูกหรือไม่?', correct: true, reveal: `"${w}" สะกดถูกแล้ว` };
+}
+
+function genQuestion() {
+  for (let tries = 0; tries < 6; tries++) {
+    let mode = QUIZ.mode === 'mixed' ? randOf(['pos','final','spell']) : QUIZ.mode;
+    const q = mode === 'pos' ? genPOS() : mode === 'final' ? genFinal() : genSpell();
+    if (q) return q;
+  }
+  return null;
+}
+
+// ── Flow
+function initPlay() { if (!QUIZ.current) nextQuestion(); }
+
+function setDiff(d) {
+  QUIZ.diff = d;
+  document.querySelectorAll('#playDiff .play-pill').forEach(b => b.classList.toggle('active', b.dataset.diff === d));
+  nextQuestion();
+}
+function setMode(m) {
+  QUIZ.mode = m;
+  document.querySelectorAll('#playMode .play-pill').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  nextQuestion();
+}
+
+function renderScoreboard() {
+  document.getElementById('sbScore').textContent    = QUIZ.score;
+  document.getElementById('sbStreak').textContent   = QUIZ.streak;
+  document.getElementById('sbBest').textContent     = QUIZ.best;
+  document.getElementById('sbAnswered').textContent = QUIZ.answered;
+}
+function setAnswerButtons(disabled) {
+  ['ansTrue','ansFalse','ansSkip'].forEach(id => document.getElementById(id).disabled = disabled);
+}
+
+function nextQuestion() {
+  const q = genQuestion();
+  QUIZ.current = q;
+  QUIZ.awaiting = false;
+  document.getElementById('quizNextBtn').style.display = 'none';
+  setAnswerButtons(false);
+  const fb = document.getElementById('quizFeedback');
+  if (!q) {
+    document.getElementById('quizWord').textContent = '—';
+    document.getElementById('quizPrompt').textContent = 'ไม่พบคำในระดับ/โหมดนี้';
+    setAnswerButtons(true);
+    return;
+  }
+  document.getElementById('quizWord').textContent = q.displayWord;
+  document.getElementById('quizPrompt').innerHTML = q.prompt;
+  fb.className = 'quiz-feedback neutral';
+  fb.textContent = 'เลือก ถูก / ผิด หรือ ข้าม';
+}
+
+function answerQuiz(choice) {
+  if (!QUIZ.current || QUIZ.awaiting) return;
+  QUIZ.awaiting = true;
+  setAnswerButtons(true);
+  const q = QUIZ.current;
+  const fb = document.getElementById('quizFeedback');
+
+  if (choice === 'skip') {
+    QUIZ.streak = 0;
+    QUIZ.skipCount++;
+    let msg = 'ข้ามข้อนี้ (0 คะแนน)';
+    if (QUIZ.skipCount % 3 === 0) { QUIZ.score -= 1; msg += ' · ข้ามครบ 3 ครั้ง −1'; }
+    fb.className = 'quiz-feedback neutral';
+    fb.innerHTML = `${msg}<span class="reveal">${q.reveal}</span>`;
+  } else {
+    QUIZ.answered++;
+    if (choice === q.correct) {
+      QUIZ.streak++;
+      QUIZ.score += QUIZ.streak;
+      if (QUIZ.streak > QUIZ.best) QUIZ.best = QUIZ.streak;
+      fb.className = 'quiz-feedback correct';
+      fb.innerHTML = `✓ ถูกต้อง! +${QUIZ.streak}<span class="reveal">${q.reveal}</span>`;
+    } else {
+      QUIZ.score -= 1;
+      QUIZ.streak = 0;
+      fb.className = 'quiz-feedback wrong';
+      fb.innerHTML = `✗ ผิด −1<span class="reveal">${q.reveal}</span>`;
+    }
+  }
+  renderScoreboard();
+  document.getElementById('quizNextBtn').style.display = 'inline-block';
+}
+
+function resetQuiz() {
+  QUIZ.score = QUIZ.streak = QUIZ.best = QUIZ.answered = QUIZ.skipCount = 0;
+  renderScoreboard();
+  nextQuestion();
 }
 </script>
 </body>
